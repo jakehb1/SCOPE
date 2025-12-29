@@ -35,19 +35,6 @@ export default function Markets() {
       } catch (err) {
         console.error('Error loading markets:', err);
         setError('Failed to load markets. Please try again later.');
-        // Set mock data for development
-        setMarkets([
-          {
-            id: '1',
-            question: 'Sample Market Question',
-            slug: 'sample-market',
-            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            liquidity: 50000,
-            volume: 120000,
-            url: 'https://polymarket.com/event/sample-market',
-            createdAt: new Date().toISOString(),
-          },
-        ]);
       } finally {
         setLoading(false);
       }

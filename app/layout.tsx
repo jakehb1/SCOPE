@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Layout from "@/components/shared/Layout";
 
 export const metadata: Metadata = {
-  title: "scope - Track Polymarket deals in real time",
-  description: "Track newly created Polymarket deals in real time. Get needed data like end date, liquidity, volume, and links - all inside Telegram.",
+  title: "scope - Prediction Markets Intelligence Dashboard",
+  description: "Real-time edge for prediction markets traders. Track new markets, whale trades, arbitrage opportunities, and get AI-powered market context.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Layout>{children}</Layout>
+      </body>
     </html>
   );
 }

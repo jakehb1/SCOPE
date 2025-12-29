@@ -1,11 +1,9 @@
 import Link from 'next/link';
 
 const socialLinks = [
-  { name: 'Telegram Bot', href: 'https://t.me/scope_bot', icon: '🤖' },
-  { name: 'Telegram Channel', href: 'https://t.me/scope', icon: '📢' },
-  { name: 'X (Twitter)', href: 'https://twitter.com/scope', icon: '𝕏' },
-  { name: 'GitHub', href: 'https://github.com/scope', icon: '💻' },
-  { name: 'GitBook', href: 'https://docs.scope.xyz', icon: '📚' },
+  { name: 'X (Twitter)', href: 'https://twitter.com/scope' },
+  { name: 'GitHub', href: 'https://github.com/scope' },
+  { name: 'GitBook', href: 'https://docs.scope.xyz' },
 ];
 
 export default function Footer() {
@@ -21,10 +19,9 @@ export default function Footer() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-primary-red transition-colors duration-200"
+                className="font-medium hover:text-primary-red transition-colors duration-200"
               >
-                <span className="text-xl">{link.icon}</span>
-                <span className="font-medium">{link.name}</span>
+                {link.name}
               </Link>
             ))}
           </div>

@@ -8,19 +8,19 @@ import { fetchMarkets } from '@/lib/polymarket-api';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const limit = parseInt(searchParams.get('limit') || '100', 10);
 
     const markets = await fetchMarkets(limit);
     
     return NextResponse.json(markets, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
       },
     });
   } catch (error) {
     console.error('Error in markets API route:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch markets' },
+      { error: 'Failed to fetch markets', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

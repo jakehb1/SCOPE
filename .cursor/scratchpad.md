@@ -1,263 +1,328 @@
-# Project Scratchpad: Scope Website
+# Project Scratchpad: Prediction Markets Intelligence Dashboard
 
 ## Background and Motivation
 
-The user wants to create a website called "scope" - a service that tracks newly created Polymarket deals in real time and delivers notifications via Telegram. This is based on the polydictions.xyz design.
+**Product Name:** Prediction Markets Intelligence Dashboard (Working name: "scope")
 
-**Key Features of the Original Site:**
-- Landing page for a Telegram bot service
-- Tracks Polymarket deals in real-time
-- Provides market data (end dates, liquidity, volume, charts)
-- Direct links to markets on Polymarket
-- Telegram-native notifications
-- Navigation sections: markets, alerts, whales, arbitrage, roadmap
-- Contract Address (CA) display: iATcGSt9DhJF9ZiJ6dmR153N7bW2G4J9dSSDxWSpump
-- Social links: Telegram Bot, Telegram Channel, X (Twitter), GitHub, GitBook
-- **Note:** Project has been rebranded from "polydictions" to "scope"
-- Modern, clean design with feature highlights and icons
+**Product Vision:**
+Give traders a real-time edge in prediction markets by surfacing:
+- New market creation alerts
+- Key market metrics (end date, liquidity, volume, chart, links)
+- Whale trades and insider signals
+- Cross-platform arbitrage opportunities (Polymarket vs Kalshi)
+- AI-generated market context summaries
 
-**Project Goal:** Create a modern, responsive website called "scope" that serves as an effective landing page for a Telegram bot service tracking Polymarket deals. The site will integrate with the Polymarket CLOB API to display real-time market data.
+Deliver these insights via a web dashboard and Telegram-native notifications.
+
+**Problem Statement:**
+Polymarket creates new markets rapidly. Traders lose time:
+- Finding new markets early
+- Assessing market quality
+- Tracking whales / insiders
+- Manually checking prices across platforms
+
+This product reduces information latency and organizes intelligence into actionable modules.
 
 **Color Palette:**
-- Primary Red: Muted brick red / dark terracotta (#8B3A3A or similar)
-- Black: Solid black (#000000)
-- Design: Clean geometric design with strong contrast between red and black elements
+- Primary Red: #8B3A3A (muted brick red)
+- Black: #000000
+- Design: Clean geometric design with strong contrast
 
 ## Key Challenges and Analysis
 
-1. **Design Recreation:** Need to recreate the visual design, layout, and user experience without direct access to the original site's code or assets
-2. **Responsive Design:** Ensure the site works well on desktop, tablet, and mobile devices
-3. **Modern Tech Stack:** Choose appropriate technologies (React/Next.js, Vue, or vanilla HTML/CSS/JS)
-4. **Performance:** Fast loading times and smooth animations
-5. **Accessibility:** Ensure the site is accessible and follows best practices
-6. **Content Accuracy:** Replicate all text, features, and links accurately
-7. **Icon/Asset Creation:** Need appropriate icons for features (Fast, Chart, Link, Telegram Chat, Info, Easy)
-8. **Polymarket CLOB API Integration:** Need to research and integrate Polymarket's CLOB API for real-time market data
-9. **Color Palette Implementation:** Apply the red and black color scheme consistently throughout the design
+1. **Real-Time Data Integration:** WebSocket connections for live updates, fallback polling
+2. **Multi-Platform API Integration:** Polymarket CLOB API, Kalshi API, potential news APIs
+3. **AI Context Generation:** Market summaries with caching strategy
+4. **Performance:** Handle 1k+ trades/min without UI freeze, <2s page loads
+5. **Complex Filtering/Sorting:** Multiple filter combinations across modules
+6. **Telegram Bot Integration:** Real-time notifications, user preferences
+7. **Database Architecture:** Postgres for persistent data, Redis for real-time feeds
+8. **Arbitrage Calculation:** Cross-platform price matching and spread calculation
 
 ## High-level Task Breakdown
 
-### Phase 1: Project Setup and Foundation
-**Task 1.1: Initialize Project Structure**
-- Success Criteria: 
-  - Project initialized with chosen tech stack (recommend Next.js for modern React-based site)
-  - Basic folder structure created
-  - Development environment configured and running
-  - Can view a basic "Hello World" page locally
-
-**Task 1.2: Set Up Styling System**
+### Phase 1: Project Foundation & Infrastructure
+**Task 1.1: Project Structure & Tech Stack Setup**
 - Success Criteria:
-  - CSS framework or styling solution configured (Tailwind CSS recommended)
-  - Base styles, typography, and color scheme defined (red/black palette)
-  - Responsive breakpoints configured
-  - Can apply styles consistently across components
-  - Color palette variables configured (red: #8B3A3A or similar, black: #000000)
+  - Next.js 16 with App Router configured
+  - TypeScript, Tailwind CSS v3
+  - Folder structure: app/, components/, lib/, types/, hooks/, utils/
+  - Development environment running
 
-### Phase 2: Core Layout and Structure
-**Task 2.1: Create Header/Navigation Component**
+**Task 1.2: Database & Backend Setup**
 - Success Criteria:
-  - Navigation bar with sections: markets, alerts, whales, arbitrage, roadmap
-  - Polydictions logo/branding
+  - Postgres database schema designed (markets, trades, alerts, users)
+  - Redis configured for real-time feeds
+  - Database connection utilities created
+  - Migration system set up
+
+**Task 1.3: API Integration Foundation**
+- Success Criteria:
+  - Polymarket CLOB client configured
+  - Kalshi API client structure (if available)
+  - API error handling and retry logic
+  - Rate limiting implemented
+
+**Task 1.4: Real-Time Infrastructure**
+- Success Criteria:
+  - WebSocket server setup (Next.js API routes or separate service)
+  - Polling fallback mechanism
+  - Connection status management
+  - Message deduplication logic
+
+### Phase 2: Core UI Components & Layout
+**Task 2.1: Navigation & Layout System**
+- Success Criteria:
+  - Header with navigation: Markets, Alerts, Whales, Arbitrage, Roadmap
   - Responsive mobile menu
-  - Smooth scrolling or navigation functionality
-  - Matches original design aesthetic
+  - Layout wrapper component
+  - Active route highlighting
 
-**Task 2.2: Create Hero Section**
+**Task 2.2: Landing Page / Home**
 - Success Criteria:
-  - Main headline: "polydictions"
-  - Subheadline describing the service
-  - "Open Telegram bot" button/link
-  - Contract Address (CA) display with copy functionality
-  - Visually matches original design
+  - Hero section with value proposition
+  - Feature highlights
+  - CTA links: Telegram bot, Telegram channel, X, GitHub, GitBook
+  - Responsive design
+  - All CTAs open in new tabs
 
-**Task 2.3: Create Footer Component**
+**Task 2.3: Shared UI Components**
 - Success Criteria:
-  - Social links: Telegram Bot, Telegram Channel, X, GitHub, GitBook
-  - Copyright notice: "© 2025 polydictions. real-time Polymarket deal tracking."
-  - Responsive layout
-  - All links functional
+  - Loading states/spinners
+  - Error states
+  - Modal component (for Market Context)
+  - Table component (for Whale Tracker)
+  - Filter/Sort controls component
+  - Connection status indicator
 
-### Phase 3: Feature Sections
-**Task 3.1: Create "Why polydictions?" Section**
+### Phase 3: Markets Explorer Module
+**Task 3.1: Markets List Display**
 - Success Criteria:
-  - Section header: "why polydictions?"
-  - Six feature cards displayed:
-    1. Fast - "fast alerts" with description
-    2. Chart - "key market data" with description
-    3. Link - "direct access" with description
-    4. Telegram Chat - "telegram native" with description
-    5. Info - "stay informed" with description
-    6. Easy - "easy setup" with description
-  - Icons for each feature (can use SVG icons or icon library)
+  - Market cards/list with: title, end date, liquidity, volume, link
+  - Pagination / "Load more" functionality
+  - Initial load <2 seconds (cached)
   - Responsive grid layout
-  - Matches original visual design
 
-**Task 3.2: Create Call-to-Action Sections**
+**Task 3.2: Markets Filtering & Sorting**
 - Success Criteria:
-  - Prominent Telegram bot link/button
-  - Clear instructions for getting started
-  - Visually appealing and accessible
+  - Sort by: volume, newest, ending soon
+  - Category filters: all, politics, sports, crypto, finance, tech, culture, geopolitics, other
+  - Filter updates results in <500ms
+  - Filter state persists in URL params
 
-### Phase 3.5: Polymarket CLOB API Integration
-**Task 3.3: Research and Set Up Polymarket CLOB API**
+**Task 3.3: Market Context Modal**
 - Success Criteria:
-  - API endpoints identified and documented
-  - API client/service module created
-  - Error handling implemented
-  - Environment variables configured for API keys (if needed)
-  - Can successfully fetch market data from API
+  - Modal opens from market card
+  - Shows "Loading context..." state
+  - Displays AI-generated summary (3-8 bullet points or 2-3 paragraphs)
+  - Includes: "What this market is about", "Key dates", "Key factors"
+  - Optional related links
+  - Cached after first generation
 
-**Task 3.4: Implement Real-Time Market Data Display**
+### Phase 4: New Market Alerts Module
+**Task 4.1: Real-Time Alert Feed**
 - Success Criteria:
-  - Markets section displays live data from Polymarket
-  - Shows newly created deals with end dates, liquidity, volume
-  - Data refreshes automatically or on user interaction
-  - Loading states and error states handled gracefully
-  - Direct links to markets on Polymarket work correctly
+  - Shows markets from past 3 days
+  - Real-time connection status indicator
+  - "Sound on" toggle (persists in localStorage)
+  - "Alerts today" count
+  - New markets appear within <10s (WebSocket) or <60s (polling)
 
-**Task 3.5: Implement Market Data Features**
+**Task 4.2: Alerts Controls**
 - Success Criteria:
-  - Market charts/data visualization (if applicable)
-  - Filtering/sorting capabilities for markets
-  - Market details modal or page
-  - Responsive design for market data tables/cards
+  - Same sorting as Markets page
+  - Category filter (includes "uncategorized")
+  - Sound toggle functionality
+  - Auto-reconnect on socket drop
 
-### Phase 4: Styling and Polish
-**Task 4.1: Implement Visual Design**
+**Task 4.3: Alert Notifications**
 - Success Criteria:
-  - Color scheme matches or improves upon original
-  - Typography is clean and readable
-  - Spacing and layout are consistent
-  - Visual hierarchy is clear
-  - Smooth animations/transitions where appropriate
+  - Audio notification on new market (if sound enabled)
+  - Visual highlight for new items
+  - Deduplication prevents repeat alerts
 
-**Task 4.2: Responsive Design Implementation**
+### Phase 5: Whale Tracker Module
+**Task 5.1: Whale Feed Display**
 - Success Criteria:
-  - Site is fully responsive on mobile (320px+)
-  - Site works well on tablet (768px+)
-  - Site is optimized for desktop (1024px+)
-  - All interactive elements are touch-friendly on mobile
-  - Navigation works seamlessly across all breakpoints
+  - Real-time "live updates" indicator
+  - Aggregated metrics: whale trades count, volume, buy/sell volume, percentages
+  - Stats update when filters change
+  - Handles 1k+ trades/min without UI freeze
 
-**Task 4.3: Add Interactive Features**
+**Task 5.2: Whale Filters**
 - Success Criteria:
-  - Contract Address copy-to-clipboard functionality works
-  - Smooth scroll animations
-  - Hover effects on buttons and links
-  - Loading states where appropriate
-  - All links open correctly (external links in new tabs)
+  - Trade type: all, buys only, sells only
+  - Minimum trade size dropdown (default: $5K+)
+  - Category filter: all, politics, sports, crypto, finance, tech, culture
+  - Insider Mode toggle with heuristic logic
 
-### Phase 5: Testing and Optimization
-**Task 5.1: Cross-browser Testing**
+**Task 5.3: Whale Table**
 - Success Criteria:
-  - Site works in Chrome, Firefox, Safari, Edge
-  - No console errors
-  - All features function correctly across browsers
+  - Columns: trader, market, shares, investment, price, side, time
+  - Clickable market/trader links (optional)
+  - Real-time updates without full page refresh
+  - Sortable columns
 
-**Task 5.2: Performance Optimization**
+**Task 5.4: Insider Detection Logic**
 - Success Criteria:
-  - Lighthouse score > 90 for performance
-  - Images optimized and lazy-loaded
-  - Code is minified for production
-  - Fast initial page load (< 3 seconds on 3G)
+  - Heuristic: account age < X days AND total traded > Y threshold AND top percentile
+  - Returns boolean is_insider_like
+  - Visual indicator for insider-like trades
 
-**Task 5.3: Accessibility Audit**
+### Phase 6: Arbitrage Scanner Module
+**Task 6.1: Arbitrage Display**
 - Success Criteria:
-  - WCAG 2.1 AA compliance
-  - Keyboard navigation works
-  - Screen reader compatible
-  - Proper ARIA labels where needed
-  - Color contrast meets standards
+  - Connection status indicator
+  - Stats: opportunities found, average spread, best spread, last updated
+  - Updates every 30-60 seconds (MVP)
+  - Shows positive spreads (profitable) and negative spreads
 
-### Phase 6: Deployment Preparation
-**Task 6.1: Production Build Configuration**
+**Task 6.2: Arbitrage Filters**
 - Success Criteria:
-  - Production build script configured
-  - Environment variables set up
-  - Build generates optimized static files
-  - No build errors or warnings
+  - Category filters: all, sports, politics/crypto, nfl, nba, nhl, mlb, cfb, cbb
+  - Filter updates results
 
-**Task 6.2: Deployment Setup**
+**Task 6.3: Arbitrage Logic & Display**
 - Success Criteria:
-  - Deployment platform chosen (Vercel, Netlify, etc.)
-  - Domain configuration ready (if applicable)
-  - CI/CD pipeline configured (if applicable)
-  - Site is live and accessible
+  - Identifies same event across Polymarket and Kalshi
+  - Calculates spread after fees
+  - Fee assumptions documented and adjustable
+  - Disclaimer text displayed
+
+**Task 6.4: Arbitrage UX Content**
+- Success Criteria:
+  - "How arbitrage works" explanation
+  - Risk disclaimer text
+  - Clear profit/loss indicators
+
+### Phase 7: Roadmap Page
+**Task 7.1: Roadmap Content**
+- Success Criteria:
+  - Phase 1 (completed): Telegram bot, channel, AI context, watchlist, keyword filtering, token launch
+  - Phase 2 (in progress): X agent, Chrome extension, landing page/docs, spam filtering
+  - Phase 3 (upcoming): Leaderboard, discussions, portfolio tracking, Discord integration, staking
+  - Phase 4 (future): AI predictions, automated trading, premium subscription, API access
+  - Visual timeline/roadmap display
+
+### Phase 8: Cross-Cutting Features
+**Task 8.1: AI Market Context Generation**
+- Success Criteria:
+  - API endpoint for context generation
+  - Caching strategy (Postgres)
+  - Output format: 3-8 bullet points or 2-3 paragraphs
+  - Includes: what market is about, key dates, key factors
+  - Optional related links (news, Wikipedia)
+
+**Task 8.2: Telegram Bot Integration (Backend)**
+- Success Criteria:
+  - Bot sends messages for: new markets, watchlist price changes, whale trades (optional)
+  - Commands: /start, /help, config commands
+  - Deep links to dashboard
+  - User preference storage
+
+**Task 8.3: Performance Optimization**
+- Success Criteria:
+  - Markets page: <2s initial load
+  - Alerts page: <1s update render
+  - Whale page: handles 1k trades/min
+  - Code splitting and lazy loading
+  - Image optimization
+
+**Task 8.4: Security & Compliance**
+- Success Criteria:
+  - API keys never shipped to client
+  - Rate limiting on public endpoints
+  - Abuse prevention
+  - Risk disclaimers in UI
+  - Arbitrage disclaimer text
 
 ## Project Status Board
 
-- [ ] **Phase 1: Project Setup and Foundation**
-  - [ ] Task 1.1: Initialize Project Structure
-  - [ ] Task 1.2: Set Up Styling System
-- [ ] **Phase 2: Core Layout and Structure**
-  - [ ] Task 2.1: Create Header/Navigation Component
-  - [ ] Task 2.2: Create Hero Section
-  - [ ] Task 2.3: Create Footer Component
-- [ ] **Phase 3: Feature Sections**
-  - [ ] Task 3.1: Create "Why polydictions?" Section
-  - [ ] Task 3.2: Create Call-to-Action Sections
-  - [ ] Task 3.3: Research and Set Up Polymarket CLOB API
-  - [ ] Task 3.4: Implement Real-Time Market Data Display
-  - [ ] Task 3.5: Implement Market Data Features
-- [ ] **Phase 4: Styling and Polish**
-  - [ ] Task 4.1: Implement Visual Design
-  - [ ] Task 4.2: Responsive Design Implementation
-  - [ ] Task 4.3: Add Interactive Features
-- [ ] **Phase 5: Testing and Optimization**
-  - [ ] Task 5.1: Cross-browser Testing
-  - [ ] Task 5.2: Performance Optimization
-  - [ ] Task 5.3: Accessibility Audit
-- [ ] **Phase 6: Deployment Preparation**
-  - [ ] Task 6.1: Production Build Configuration
-  - [ ] Task 6.2: Deployment Setup
+- [ ] **Phase 1: Project Foundation & Infrastructure**
+  - [ ] Task 1.1: Project Structure & Tech Stack Setup
+  - [ ] Task 1.2: Database & Backend Setup
+  - [ ] Task 1.3: API Integration Foundation
+  - [ ] Task 1.4: Real-Time Infrastructure
+- [ ] **Phase 2: Core UI Components & Layout**
+  - [ ] Task 2.1: Navigation & Layout System
+  - [ ] Task 2.2: Landing Page / Home
+  - [ ] Task 2.3: Shared UI Components
+- [ ] **Phase 3: Markets Explorer Module**
+  - [ ] Task 3.1: Markets List Display
+  - [ ] Task 3.2: Markets Filtering & Sorting
+  - [ ] Task 3.3: Market Context Modal
+- [ ] **Phase 4: New Market Alerts Module**
+  - [ ] Task 4.1: Real-Time Alert Feed
+  - [ ] Task 4.2: Alerts Controls
+  - [ ] Task 4.3: Alert Notifications
+- [ ] **Phase 5: Whale Tracker Module**
+  - [ ] Task 5.1: Whale Feed Display
+  - [ ] Task 5.2: Whale Filters
+  - [ ] Task 5.3: Whale Table
+  - [ ] Task 5.4: Insider Detection Logic
+- [ ] **Phase 6: Arbitrage Scanner Module**
+  - [ ] Task 6.1: Arbitrage Display
+  - [ ] Task 6.2: Arbitrage Filters
+  - [ ] Task 6.3: Arbitrage Logic & Display
+  - [ ] Task 6.4: Arbitrage UX Content
+- [ ] **Phase 7: Roadmap Page**
+  - [ ] Task 7.1: Roadmap Content
+- [ ] **Phase 8: Cross-Cutting Features**
+  - [ ] Task 8.1: AI Market Context Generation
+  - [ ] Task 8.2: Telegram Bot Integration (Backend)
+  - [ ] Task 8.3: Performance Optimization
+  - [ ] Task 8.4: Security & Compliance
 
 ## Current Status / Progress Tracking
 
-**Current Phase:** Phase 2 & 3 In Progress - Core UI Complete, API Integration Started
+**Current Phase:** Phase 3 Complete - Markets Explorer Module Done
 
-**Last Updated:** Tasks 2.1-3.3 completed
+**Last Updated:** Phase 3 completed
 
 **Completed Tasks:**
-- ✅ Task 1.1: Project initialized with Next.js 16, React 19, TypeScript, and Tailwind CSS v3
-- ✅ Task 1.2: Styling system configured with red/black color palette (#8B3A3A and #000000)
-- ✅ Task 2.1: Header/Navigation component created with responsive mobile menu
-- ✅ Task 2.2: Hero section with headline, CTA button, and contract address copy functionality
-- ✅ Task 2.3: Footer component with social links
-- ✅ Task 3.1: "Why polydictions?" features section with 6 feature cards
-- ✅ Task 3.2: Call-to-action sections (integrated in Hero)
-- ✅ Task 3.3: Polymarket API client structure created
-  - API client module created in lib/polymarket-api.ts
-  - Next.js API route created at /api/markets
-  - Markets component created with loading/error states
-  - **Note:** Actual Polymarket API endpoints need to be identified and configured
+- ✅ Task 1.1: Project structure created with all module routes
+- ✅ Task 2.1: Navigation & Layout System
+- ✅ Task 2.2: Landing Page updated
+- ✅ Task 3.1: Markets List Display
+  - Market cards with key metrics (end date, liquidity, volume, category)
+  - Responsive grid layout
+  - Loading and error states
+  - Direct links to Polymarket
+- ✅ Task 3.2: Markets Filtering & Sorting
+  - Category filter (all, politics, sports, crypto, finance, tech, culture, geopolitics, other)
+  - Sort by: volume, newest, ending soon
+  - Filter updates in <500ms
+  - Results count display
+- ✅ Task 3.3: Market Context Modal
+  - Modal component with loading state
+  - API endpoint structure for context generation
+  - Placeholder for AI-generated summaries
+  - Ready for AI integration
 
-**Current Task:** Task 3.4 - Implement Real-Time Market Data Display
+**Shared Components Created:**
+- LoadingSpinner
+- MarketCard
+- FilterSortControls
+- MarketContextModal
+- Layout wrapper
+
+**API Updates:**
+- Markets API route with caching
+- Market Context API route (placeholder for AI)
+- Category inference from market data
 
 **Notes:**
-- All core UI components complete and styled with red/black palette
-- API integration structure in place, but needs actual Polymarket API endpoints
-- Markets component shows sample data until API is fully configured
-- Need to research Polymarket's actual API endpoints (GraphQL or REST)
+- This is a complete rebuild with new comprehensive requirements
+- Project will be built incrementally, one module at a time
+- Starting with Phase 1: Foundation, then Phase 2: Core UI, then modules sequentially
+- Tech stack: Next.js 16, TypeScript, Tailwind CSS, Postgres, Redis
+- Real-time features require WebSocket infrastructure
+- AI context generation will need API integration (OpenAI/Anthropic or similar)
 
 ## Executor's Feedback or Assistance Requests
 
-**API Integration Status:**
-- Created API client structure in `lib/polymarket-api.ts`
-- Created Next.js API route at `app/api/markets/route.ts`
-- Markets component displays data with loading/error states
-- **Action Required:** Need to identify actual Polymarket API endpoints:
-  - Polymarket may use GraphQL API at `https://api.polymarket.com/graphql`
-  - Or REST API endpoints
-  - Or CLOB-specific endpoints
-  - May require API keys or authentication
-  - Need to verify exact endpoint structure and data format
-
-**Recommendation:** 
-- Check Polymarket documentation or GitHub repositories for API access
-- May need to use Polymarket's public GraphQL API
-- Consider using a library like `@polymarket/clob-client` if available
+_This section will be updated by the Executor as work progresses._
 
 ## Lessons
 
 _This section will be updated with learnings and solutions discovered during implementation._
-

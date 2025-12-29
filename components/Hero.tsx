@@ -17,50 +17,61 @@ export default function Hero() {
   };
 
   return (
-    <section className="section-container py-16 md:py-24">
-      <div className="max-w-4xl mx-auto text-center">
-        {/* Main Headline */}
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary-red mb-6">
-          scope
-        </h1>
+    <section className="bg-primary-red py-16 md:py-24">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Main Headline */}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+            scope
+          </h1>
 
-        {/* Subheadline */}
-        <p className="text-xl md:text-2xl text-primary-black mb-8 max-w-2xl mx-auto">
-          track newly created Polymarket deals in real time. get needed data like end date, liquidity, volume, and links - all inside Telegram.
-        </p>
+          {/* Subheadline */}
+          <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto opacity-90">
+            Give traders a real-time edge in prediction markets. Track new markets, whale trades, arbitrage opportunities, and get AI-powered market context.
+          </p>
 
-        {/* Telegram Bot Button */}
-        <div className="mb-8">
-          <a
-            href="https://t.me/scope_bot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary inline-block"
-          >
-            Telegram Open Telegram bot
-          </a>
-        </div>
-
-        {/* Contract Address */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <span className="text-sm font-medium text-primary-black">CA:</span>
-          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
-            <code className="text-sm font-mono text-primary-black">{contractAddress}</code>
-            <button
-              onClick={copyToClipboard}
-              className="text-primary-red hover:text-primary-black transition-colors duration-200"
-              aria-label="Copy contract address"
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a
+              href="https://t.me/scope_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white text-primary-red px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-200"
             >
-              {copied ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )}
-            </button>
+              Telegram Bot
+            </a>
+            <a
+              href="https://t.me/scope"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200"
+            >
+              Telegram Channel
+            </a>
+            <a
+              href="https://twitter.com/scope"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200"
+            >
+              X (Twitter)
+            </a>
+            <a
+              href="https://github.com/jakehb1/SCOPE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200"
+            >
+              GitHub
+            </a>
+            <a
+              href="https://docs.scope.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200"
+            >
+              GitBook
+            </a>
           </div>
         </div>
       </div>

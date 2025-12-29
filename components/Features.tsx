@@ -1,33 +1,27 @@
 const features = [
   {
-    icon: '⚡',
-    title: 'fast alerts',
-    description: 'get instant notifications the moment new Polymarket deals are created.',
+    title: 'Markets Explorer',
+    description: 'Browse and filter prediction markets with key metrics. Sort by volume, newest, or ending soon. Get instant AI-powered market context.',
+    href: '/markets',
   },
   {
-    icon: '📊',
-    title: 'key market data',
-    description: 'view needed information including end dates, liquidity levels, trading volume, and market chart.',
+    title: 'New Market Alerts',
+    description: 'Real-time notifications when new Polymarket markets are created. Get alerts within seconds via web dashboard or Telegram.',
+    href: '/alerts',
   },
   {
-    icon: '🔗',
-    title: 'direct access',
-    description: 'one-click links take you straight to the market on Polymarket.',
+    title: 'Whale Tracker',
+    description: 'Track large trades and identify insider-like activity. Monitor whale volume, buy/sell ratios, and filter by trade size and category.',
+    href: '/whales',
   },
   {
-    icon: '💬',
-    title: 'telegram native',
-    description: 'all updates will be sent directly to your telegram. easy as it is.',
+    title: 'Arbitrage Scanner',
+    description: 'Find profitable mispricings between Polymarket and Kalshi. Calculate spreads after fees and spot arbitrage opportunities.',
+    href: '/arbitrage',
   },
   {
-    icon: 'ℹ️',
-    title: 'stay informed',
-    description: 'track market activity and spot opportunities before everyone else.',
-  },
-  {
-    icon: '✨',
-    title: 'easy setup',
-    description: 'start in seconds. just open the bot and you\'re ready to receive updates.',
+    title: 'AI Market Context',
+    description: 'Get instant understanding of what markets mean. AI-generated summaries with key dates, factors, and related information.',
   },
 ];
 
@@ -40,20 +34,34 @@ export default function Features() {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 rounded-lg border-2 border-primary-black hover:border-primary-red transition-all duration-200 hover:shadow-lg"
-            >
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-bold text-primary-black mb-2 capitalize">
-                {feature.title}
-              </h3>
-              <p className="text-gray-700 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
-          ))}
+          {features.map((feature, index) => {
+            const Content = (
+              <div className="bg-white p-6 rounded-lg border-2 border-primary-black hover:border-primary-red transition-all duration-200 hover:shadow-lg h-full flex flex-col">
+                <h3 className="text-xl font-bold text-primary-black mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-700 leading-relaxed flex-1">
+                  {feature.description}
+                </p>
+                {feature.href && (
+                  <a
+                    href={feature.href}
+                    className="mt-4 text-primary-red hover:text-primary-black font-medium inline-block"
+                  >
+                    Explore →
+                  </a>
+                )}
+              </div>
+            );
+
+            return feature.href ? (
+              <a key={index} href={feature.href} className="block">
+                {Content}
+              </a>
+            ) : (
+              <div key={index}>{Content}</div>
+            );
+          })}
         </div>
       </div>
     </section>
