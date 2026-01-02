@@ -275,9 +275,9 @@ This product reduces information latency and organizes intelligence into actiona
 
 ## Current Status / Progress Tracking
 
-**Current Phase:** Phase 3 Complete - Markets Explorer Module Done
+**Current Phase:** Phase 3 Complete - Markets Explorer Module Done + CLOB Integration Enhanced
 
-**Last Updated:** Phase 3 completed
+**Last Updated:** CLOB integration improved for live markets and search functionality
 
 **Completed Tasks:**
 - ✅ Task 1.1: Project structure created with all module routes
@@ -288,16 +288,25 @@ This product reduces information latency and organizes intelligence into actiona
   - Responsive grid layout
   - Loading and error states
   - Direct links to Polymarket
+  - Entire card is clickable to navigate to Polymarket
 - ✅ Task 3.2: Markets Filtering & Sorting
   - Category filter (all, politics, sports, crypto, finance, tech, culture, geopolitics, other)
   - Sort by: volume, newest, ending soon
   - Filter updates in <500ms
   - Results count display
+  - **Search functionality implemented** - searches across question, slug, and category
+  - **Live market updates** - refreshes every 60 seconds
 - ✅ Task 3.3: Market Context Modal
   - Modal component with loading state
   - API endpoint structure for context generation
   - Placeholder for AI-generated summaries
   - Ready for AI integration
+- ✅ **CLOB Integration Enhanced**
+  - Fetches up to 500 live markets from Polymarket CLOB API
+  - Filters for active, non-archived markets
+  - Calculates market metrics (liquidity, volume, yes price) from token data
+  - Real-time market data integration
+  - Search works across market questions, slugs, and categories
 
 **Shared Components Created:**
 - LoadingSpinner
@@ -326,3 +335,10 @@ _This section will be updated by the Executor as work progresses._
 ## Lessons
 
 _This section will be updated with learnings and solutions discovered during implementation._
+
+- **CLOB API Integration:** The Polymarket CLOB client returns markets in a `PaginationPayload` structure with a `data` array. Always access `response.data` to get the markets array.
+- **Market Filtering:** Some markets may have `active: true` but `closed: true`. Filter for `active === true && archived === false` to show relevant markets.
+- **Price Calculation:** Token prices in CLOB API are typically stored as decimals (0-1). Convert to percentage by multiplying by 100 if the value is <= 1.
+- **Search Implementation:** Search should work across multiple fields (question, slug, category) for better user experience. Use `.toLowerCase()` for case-insensitive matching.
+- **Performance:** Fetching order books for many markets is slow. Use token prices for initial display, and only fetch order books when needed for specific markets.
+- **Real-time Updates:** Implement auto-refresh with `setInterval` in `useEffect` with proper cleanup to avoid memory leaks.

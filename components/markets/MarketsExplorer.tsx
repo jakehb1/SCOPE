@@ -27,7 +27,8 @@ export default function MarketsExplorer() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('/api/markets?limit=100');
+        // Fetch more markets to enable better search and filtering
+        const response = await fetch('/api/markets?limit=500');
         
         if (!response.ok) {
           throw new Error('Failed to fetch markets');
@@ -44,18 +45,29 @@ export default function MarketsExplorer() {
     }
 
     loadMarkets();
+    
+    // Refresh markets every 60 seconds for live updates
+    const interval = setInterval(loadMarkets, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter and sort markets
   useEffect(() => {
     let filtered = [...markets];
 
-    // Apply search filter
+    // Apply search filter - search in question, description, and tags
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((market) =>
-        market.question.toLowerCase().includes(query)
-      );
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((market) => {
+        const question = market.question.toLowerCase();
+        const slug = market.slug.toLowerCase();
+        const category = market.category?.toLowerCase() || '';
+        
+        // Search in question, slug, and category
+        return question.includes(query) || 
+               slug.includes(query) || 
+               category.includes(query);
+      });
     }
 
     // Apply category filter
@@ -203,12 +215,24 @@ export default function MarketsExplorer() {
         </div>
       )}
 
+      {/* Results Count */}
+      {!loading && !error && markets.length > 0 && (
+        <div className="mb-4 text-white opacity-90 text-sm">
+          Showing {displayedMarkets.length} of {filteredMarkets.length} markets
+          {searchQuery && ` matching "${searchQuery}"`}
+        </div>
+      )}
+
       {/* Markets Grid */}
       {!loading && !error && (
         <>
           {displayedMarkets.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white opacity-90">No markets found matching your filters.</p>
+              <p className="text-white opacity-90">
+                {searchQuery 
+                  ? `No markets found matching "${searchQuery}". Try a different search term.`
+                  : 'No markets found matching your filters.'}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

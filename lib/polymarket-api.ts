@@ -43,9 +43,10 @@ function inferCategory(market: any): MarketCategory {
 }
 
 /**
- * Calculate market metrics from tokens and order book
+ * Calculate market metrics from tokens
+ * Note: For better performance, we use token prices instead of fetching order books
  */
-function calculateMarketMetrics(market: any) {
+function calculateMarketMetrics(market: any): { liquidity: number; volume: number; yesPrice: number } {
   let liquidity = 0;
   let volume = 0;
   let yesPrice = 50; // Default to 50% if no price data
@@ -58,7 +59,6 @@ function calculateMarketMetrics(market: any) {
     });
 
     // Get yes price from tokens
-    // Look for YES token or first token with price
     // For binary markets, first token is usually YES
     const yesToken = market.tokens.find((t: any) => 
       (t.outcome && (t.outcome.toLowerCase().includes('yes') || t.outcome.toLowerCase() === 'yes'))
@@ -73,27 +73,51 @@ function calculateMarketMetrics(market: any) {
       } else if (yesToken.last_price !== undefined && yesToken.last_price !== null) {
         const price = parseFloat(yesToken.last_price);
         yesPrice = price > 1 ? price : price * 100;
-      } else if (yesToken.best_bid || yesToken.best_ask) {
-        // Use best bid/ask midpoint if available
-        const bid = parseFloat(yesToken.best_bid || 0);
-        const ask = parseFloat(yesToken.best_ask || 0);
-        if (bid > 0 || ask > 0) {
-          const midPrice = ask > 0 && bid > 0 ? (bid + ask) / 2 : (ask || bid);
-          yesPrice = midPrice > 1 ? midPrice : midPrice * 100;
-        }
       }
     }
   }
 
   // Use direct liquidity/volume if available
-  if (market.liquidity) {
+  // Check multiple possible volume field names
+  if (market.liquidity !== undefined && market.liquidity !== null) {
     liquidity = parseFloat(market.liquidity) || liquidity;
   }
-  if (market.volume) {
-    volume = parseFloat(market.volume) || volume;
+  
+  // Try various volume field names that might exist in the CLOB response
+  const volumeFields = [
+    market.volume,
+    market.total_volume,
+    market.volume_24h,
+    market.volume_7d,
+    market.volume_30d,
+    market.trade_volume,
+    market.total_trade_volume,
+  ];
+  
+  for (const vol of volumeFields) {
+    if (vol !== undefined && vol !== null) {
+      const parsed = parseFloat(vol);
+      if (!isNaN(parsed) && parsed > 0) {
+        volume = parsed;
+        break;
+      }
+    }
   }
-  if (market.total_volume) {
-    volume = parseFloat(market.total_volume) || volume;
+  
+  // If still no volume, try to calculate from token supply (approximation)
+  if (volume === 0 && market.tokens && Array.isArray(market.tokens)) {
+    // Sum up all token supplies as a rough volume estimate
+    let totalSupply = 0;
+    market.tokens.forEach((token: any) => {
+      const supply = parseFloat(token.total_supply || token.balance || 0);
+      if (!isNaN(supply)) {
+        totalSupply += supply;
+      }
+    });
+    // Use a fraction of total supply as volume estimate (very rough)
+    if (totalSupply > 0) {
+      volume = totalSupply * 0.1; // Rough estimate: 10% of supply as volume
+    }
   }
 
   // Ensure yesPrice is between 0 and 100
@@ -106,76 +130,158 @@ const CLOB_HOST = 'https://clob.polymarket.com';
 const CHAIN_ID = 137; // Polygon mainnet
 
 /**
- * Fetch markets from Polymarket CLOB API
+ * Fetch volumes for multiple markets from Gamma API
+ * Uses the events endpoint which is more efficient
  */
-export async function fetchMarkets(limit: number = 100): Promise<MarketsResponse> {
+async function fetchMarketVolumes(conditionIds: string[]): Promise<Map<string, number>> {
+  const volumeMap = new Map<string, number>();
+  
   try {
-    // Initialize CLOB client (read-only, no signer needed for fetching markets)
-    const client = new ClobClient(CLOB_HOST, CHAIN_ID);
+    // Fetch active events from Gamma API (they include volume)
+    const response = await fetch(
+      `https://gamma-api.polymarket.com/events?closed=false&limit=1000`,
+      { 
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 30 } // Cache for 30 seconds
+      }
+    );
     
-    // Fetch markets from CLOB API
-    const response = await client.getMarkets();
+    if (!response.ok) {
+      return volumeMap;
+    }
     
-    // CLOB returns { data: Market[], next_cursor: string, limit: number, count: number }
-    const marketsArray = response?.data || [];
+    const events = await response.json();
     
-    if (!Array.isArray(marketsArray) || marketsArray.length === 0) {
-      console.warn('No markets returned from CLOB API');
+    // Build a map of condition ID to volume
+    if (Array.isArray(events)) {
+      events.forEach((event: any) => {
+        if (event.markets && Array.isArray(event.markets)) {
+          event.markets.forEach((market: any) => {
+            if (market.conditionId && market.volume !== undefined) {
+              const volume = parseFloat(market.volume) || 0;
+              volumeMap.set(market.conditionId.toLowerCase(), volume);
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.debug('Could not fetch volumes from Gamma API:', error);
+  }
+  
+  return volumeMap;
+}
+
+/**
+ * Fetch markets from Polymarket Gamma API (primary source for active markets with volume)
+ * Falls back to CLOB API for order book data when needed
+ */
+export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse> {
+  try {
+    // Use Gamma API for active markets - it has volume data and current markets
+    const response = await fetch(
+      `https://gamma-api.polymarket.com/events?closed=false&limit=${limit * 2}`,
+      { 
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 30 } // Cache for 30 seconds
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Gamma API returned ${response.status}`);
+    }
+    
+    const events = await response.json();
+    
+    if (!Array.isArray(events) || events.length === 0) {
+      console.warn('No events returned from Gamma API');
       return {
         markets: [],
         total: 0,
       };
     }
     
-    // Transform CLOB response to our Market interface
-    const markets: Market[] = marketsArray
-      .slice(0, limit)
-      .map((market: any) => {
-        const conditionId = market.condition_id || '';
-        const question = market.question || 'Market';
-        const slug = market.market_slug || conditionId;
-        const { liquidity, volume, yesPrice } = calculateMarketMetrics(market);
+    // Filter for active markets that haven't ended yet
+    const now = new Date();
+    const markets: Market[] = [];
+    
+    for (const event of events) {
+      if (!event.markets || !Array.isArray(event.markets)) continue;
+      
+      for (const market of event.markets) {
+        // Must be active and not closed
+        if (market.active !== true || market.closed === true) continue;
         
-        // Parse end date
-        let endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        if (market.end_date_iso) {
+        // Must have a question and condition ID
+        if (!market.question || !market.conditionId) continue;
+        
+        // Filter out markets that have already ended
+        if (market.endDate) {
           try {
-            endDate = new Date(market.end_date_iso).toISOString();
+            const endDate = new Date(market.endDate);
+            // Only include markets that end in the future
+            if (endDate.getTime() < now.getTime() - 5 * 60 * 1000) {
+              continue;
+            }
           } catch (e) {
-            console.warn('Invalid end_date_iso:', market.end_date_iso);
+            console.warn('Could not parse endDate:', market.endDate);
+            continue;
           }
+        } else {
+          continue; // Skip markets without end dates
         }
-
-        // Parse created date (use current time if not available)
-        let createdAt = new Date().toISOString();
-        if (market.created_at) {
-          try {
-            createdAt = new Date(market.created_at).toISOString();
-          } catch (e) {
-            // Use current time as fallback
+        
+        // Get price from CLOB if needed, otherwise use default
+        let yesPrice = 50;
+        let liquidity = parseFloat(market.liquidity || '0') || 0;
+        
+        // Try to get price from CLOB for more accurate pricing
+        try {
+          const client = new ClobClient(CLOB_HOST, CHAIN_ID);
+          const clobMarkets = await client.getMarkets();
+          const clobMarket = clobMarkets.data?.find((m: any) => 
+            m.condition_id?.toLowerCase() === market.conditionId?.toLowerCase()
+          );
+          if (clobMarket) {
+            const metrics = calculateMarketMetrics(clobMarket);
+            yesPrice = metrics.yesPrice;
+            if (metrics.liquidity > 0) {
+              liquidity = metrics.liquidity;
+            }
           }
+        } catch (e) {
+          // If CLOB fails, use defaults
+          console.debug('Could not fetch CLOB data for market:', market.conditionId);
         }
-
-        return {
-          id: conditionId,
-          question: question,
+        
+        const volume = parseFloat(market.volume || '0') || 0;
+        const slug = market.slug || market.conditionId;
+        
+        markets.push({
+          id: market.conditionId,
+          question: market.question,
           slug: slug,
-          endDate: endDate,
+          endDate: market.endDate ? new Date(market.endDate).toISOString() : new Date().toISOString(),
           liquidity: liquidity,
           volume: volume,
           url: `https://polymarket.com/event/${slug}`,
-          createdAt: createdAt,
-          category: inferCategory(market),
-          conditionId: conditionId,
-          // Store yes price for display
+          createdAt: market.createdAt || new Date().toISOString(),
+          category: inferCategory({ question: market.question, tags: [] }),
+          conditionId: market.conditionId,
           yesPrice: yesPrice,
-        };
-      });
+        });
+        
+        // Stop if we have enough markets
+        if (markets.length >= limit) break;
+      }
+      
+      if (markets.length >= limit) break;
+    }
 
     return {
-      markets,
+      markets: markets,
       total: markets.length,
-      hasMore: response?.next_cursor ? true : false,
+      hasMore: markets.length >= limit, // If we got the full limit, there might be more
     };
   } catch (error) {
     console.error('Error fetching markets from CLOB API:', error);

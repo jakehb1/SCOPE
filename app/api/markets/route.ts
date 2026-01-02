@@ -8,7 +8,7 @@ import { fetchMarkets } from '@/lib/polymarket-api';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '100', 10);
+    const limit = parseInt(searchParams.get('limit') || '500', 10);
 
     const markets = await fetchMarkets(limit);
     
