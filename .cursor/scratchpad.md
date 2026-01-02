@@ -336,6 +336,16 @@ This product reduces information latency and organizes intelligence into actiona
 
 ## Executor's Feedback or Assistance Requests
 
+**2025-01-XX - Market Fetching Improvements:**
+- Increased default market limit from 200 to 1000 to fetch more markets
+- Updated `fetchMarkets` to process ALL events before slicing to limit (instead of stopping early)
+- Increased timeout to 45 seconds for larger fetches
+- Requesting up to 1000 events from Gamma API (each event can have multiple markets)
+- Updated `hasMore` logic to correctly indicate when more markets are available
+- This ensures we're pulling in all available active markets, not just a subset
+
+## Executor's Feedback or Assistance Requests
+
 _This section will be updated by the Executor as work progresses._
 
 ## Lessons

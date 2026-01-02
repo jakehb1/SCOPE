@@ -206,15 +206,20 @@ async function fetchCLOBPrices(conditionIds: string[]): Promise<Map<string, numb
  * Fetch markets from Polymarket Gamma API (primary source for active markets with volume)
  * Gets prices from CLOB API in batch
  */
-export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse> {
+export async function fetchMarkets(limit: number = 1000): Promise<MarketsResponse> {
   try {
     // Use Gamma API for active markets - it has volume data and current markets
-    // Set a timeout to prevent hanging
+    // Fetch events in batches to get more markets (each event can have multiple markets)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout for larger fetches
+    
+    // Gamma API seems to have a max limit around 500-1000 events per request
+    // Request enough events to potentially fill our limit (events have multiple markets)
+    // Each event typically has 1-5 markets, so we need more events than the limit
+    const maxEvents = Math.min(1000, Math.max(500, Math.ceil(limit / 1.5))); // Get enough events
     
     const response = await fetch(
-      `https://gamma-api.polymarket.com/events?closed=false&limit=${Math.min(limit * 2, 1000)}`,
+      `https://gamma-api.polymarket.com/events?closed=false&limit=${maxEvents}`,
       { 
         headers: { 'Accept': 'application/json' },
         signal: controller.signal,
@@ -243,7 +248,8 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
     const validMarkets: any[] = [];
     const conditionIds: string[] = [];
     
-    // First pass: collect valid markets and their condition IDs
+    // First pass: collect ALL valid markets from ALL events
+    // We'll slice to the limit after processing everything
     for (const event of events) {
       if (!event.markets || !Array.isArray(event.markets)) continue;
       
@@ -275,20 +281,22 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
           continue;
         }
         
-        // Prefer markets with some volume, but don't exclude all zero-volume markets
-        // (new markets may not have volume yet)
+        // Don't filter by volume - include all valid markets
+        // (new markets may not have volume yet, but are still valid)
         
         validMarkets.push(market);
         conditionIds.push(market.conditionId.toLowerCase());
-        
-        if (validMarkets.length >= limit) break;
       }
-      
-      if (validMarkets.length >= limit) break;
     }
     
-    // Fetch prices from CLOB API in batch
-    const priceMap = await fetchCLOBPrices(conditionIds);
+    // Slice to the requested limit after processing all events
+    const marketsToProcess = validMarkets.slice(0, limit);
+    const conditionIdsToFetch = conditionIds.slice(0, limit);
+    
+    console.log(`📊 Found ${validMarkets.length} valid markets from ${events.length} events, returning ${marketsToProcess.length}`);
+    
+    // Fetch prices from CLOB API in batch (only for markets we're returning)
+    const priceMap = await fetchCLOBPrices(conditionIdsToFetch);
     
     // Second pass: build Market objects with prices
     // Need to map markets back to their events for URL construction
@@ -303,7 +311,7 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
       }
     }
     
-    const markets: Market[] = validMarkets.map((market) => {
+    const markets: Market[] = marketsToProcess.map((market) => {
       const conditionId = market.conditionId.toLowerCase();
       const liquidity = parseFloat(market.liquidity || '0') || 0;
       const volume = parseFloat(market.volume || '0') || 0;
@@ -349,7 +357,7 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
     return {
       markets: markets,
       total: markets.length,
-      hasMore: markets.length >= limit, // If we got the full limit, there might be more
+      hasMore: validMarkets.length > limit, // If we found more than the limit, there are more available
     };
   } catch (error) {
     console.error('Error fetching markets from CLOB API:', error);
