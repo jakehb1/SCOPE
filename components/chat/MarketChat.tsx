@@ -15,6 +15,7 @@ export default function MarketChat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [userBudget, setUserBudget] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>('opus');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -108,30 +109,49 @@ export default function MarketChat() {
         <p className="text-white opacity-90">Get AI-powered betting advice for prediction markets</p>
       </div>
 
-      {/* Budget Input */}
-      <div className="bg-white rounded-lg p-4 mb-6">
-        <label htmlFor="budget" className="block text-sm font-medium text-primary-black mb-2">
-          Your Budget (optional - helps with position sizing advice)
-        </label>
-        <div className="flex gap-3">
-          <input
-            type="number"
-            id="budget"
-            value={userBudget}
-            onChange={(e) => setUserBudget(e.target.value)}
-            min="0"
-            step="0.01"
-            placeholder="e.g., 500"
-            className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black"
-          />
-          {userBudget && (
-            <button
-              onClick={() => setUserBudget('')}
-              className="px-4 py-2 bg-gray-200 text-primary-black rounded-lg hover:bg-gray-300 transition-all"
-            >
-              Clear
-            </button>
-          )}
+      {/* Model Selector and Budget Input */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Model Selector */}
+        <div className="bg-white rounded-lg p-4">
+          <label htmlFor="model" className="block text-sm font-medium text-primary-black mb-2">
+            Model
+          </label>
+          <select
+            id="model"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black bg-white"
+          >
+            <option value="opus">Opus</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </div>
+
+        {/* Budget Input */}
+        <div className="bg-white rounded-lg p-4">
+          <label htmlFor="budget" className="block text-sm font-medium text-primary-black mb-2">
+            Your Budget (optional - helps with position sizing advice)
+          </label>
+          <div className="flex gap-3">
+            <input
+              type="number"
+              id="budget"
+              value={userBudget}
+              onChange={(e) => setUserBudget(e.target.value)}
+              min="0"
+              step="0.01"
+              placeholder="e.g., 500"
+              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black"
+            />
+            {userBudget && (
+              <button
+                onClick={() => setUserBudget('')}
+                className="px-4 py-2 bg-gray-200 text-primary-black rounded-lg hover:bg-gray-300 transition-all"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
