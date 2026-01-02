@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '@/lib/ai-chat';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import ElevatedCard from '@/components/shared/ElevatedCard';
 
 export default function MarketChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
