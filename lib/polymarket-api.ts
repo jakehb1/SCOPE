@@ -179,13 +179,20 @@ async function fetchMarketVolumes(conditionIds: string[]): Promise<Map<string, n
 export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse> {
   try {
     // Use Gamma API for active markets - it has volume data and current markets
+    // Set a timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
     const response = await fetch(
-      `https://gamma-api.polymarket.com/events?closed=false&limit=${limit * 2}`,
+      `https://gamma-api.polymarket.com/events?closed=false&limit=${Math.min(limit * 2, 1000)}`,
       { 
         headers: { 'Accept': 'application/json' },
+        signal: controller.signal,
         next: { revalidate: 30 } // Cache for 30 seconds
       }
     );
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`Gamma API returned ${response.status}`);
@@ -231,27 +238,24 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
           continue; // Skip markets without end dates
         }
         
-        // Get price from CLOB if needed, otherwise use default
-        let yesPrice = 50;
-        let liquidity = parseFloat(market.liquidity || '0') || 0;
+        // Use liquidity from Gamma API (already available)
+        const liquidity = parseFloat(market.liquidity || '0') || 0;
         
-        // Try to get price from CLOB for more accurate pricing
-        try {
-          const client = new ClobClient(CLOB_HOST, CHAIN_ID);
-          const clobMarkets = await client.getMarkets();
-          const clobMarket = clobMarkets.data?.find((m: any) => 
-            m.condition_id?.toLowerCase() === market.conditionId?.toLowerCase()
-          );
-          if (clobMarket) {
-            const metrics = calculateMarketMetrics(clobMarket);
-            yesPrice = metrics.yesPrice;
-            if (metrics.liquidity > 0) {
-              liquidity = metrics.liquidity;
-            }
+        // For price, we'll use a default of 50% for now
+        // Fetching CLOB data for each market is too slow (would make 500+ API calls)
+        // TODO: Implement batch price fetching or use Gamma API price data if available
+        let yesPrice = 50;
+        
+        // Try to get price from market data if available
+        if (market.tokens && Array.isArray(market.tokens)) {
+          const yesToken = market.tokens.find((t: any) => 
+            (t.outcome && t.outcome.toLowerCase().includes('yes'))
+          ) || market.tokens[0];
+          
+          if (yesToken && yesToken.price !== undefined && yesToken.price !== null) {
+            const price = parseFloat(yesToken.price);
+            yesPrice = price > 1 ? price : price * 100;
           }
-        } catch (e) {
-          // If CLOB fails, use defaults
-          console.debug('Could not fetch CLOB data for market:', market.conditionId);
         }
         
         const volume = parseFloat(market.volume || '0') || 0;

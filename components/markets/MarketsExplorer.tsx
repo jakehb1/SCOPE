@@ -27,8 +27,15 @@ export default function MarketsExplorer() {
       try {
         setLoading(true);
         setError(null);
-        // Fetch more markets to enable better search and filtering
-        const response = await fetch('/api/markets?limit=500');
+        // Fetch markets with a reasonable limit for performance
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+        
+        const response = await fetch('/api/markets?limit=200', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
           throw new Error('Failed to fetch markets');

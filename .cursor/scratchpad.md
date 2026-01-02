@@ -260,11 +260,11 @@ This product reduces information latency and organizes intelligence into actiona
   - [ ] Task 5.2: Whale Filters
   - [ ] Task 5.3: Whale Table
   - [ ] Task 5.4: Insider Detection Logic
-- [ ] **Phase 6: Arbitrage Scanner Module**
-  - [ ] Task 6.1: Arbitrage Display
-  - [ ] Task 6.2: Arbitrage Filters
-  - [ ] Task 6.3: Arbitrage Logic & Display
-  - [ ] Task 6.4: Arbitrage UX Content
+- [x] **Phase 6: Arbitrage Scanner Module**
+  - [x] Task 6.1: Arbitrage Display
+  - [x] Task 6.2: Arbitrage Filters
+  - [x] Task 6.3: Arbitrage Logic & Display
+  - [x] Task 6.4: Arbitrage UX Content
 - [ ] **Phase 7: Roadmap Page**
   - [ ] Task 7.1: Roadmap Content
 - [ ] **Phase 8: Cross-Cutting Features**
@@ -275,9 +275,9 @@ This product reduces information latency and organizes intelligence into actiona
 
 ## Current Status / Progress Tracking
 
-**Current Phase:** Phase 3 Complete - Markets Explorer Module Done + CLOB Integration Enhanced
+**Current Phase:** Phase 6 Complete - Arbitrage Scanner Module Implemented
 
-**Last Updated:** CLOB integration improved for live markets and search functionality
+**Last Updated:** Arbitrage scanner fully implemented with matching logic, spread calculation, and UI
 
 **Completed Tasks:**
 - ✅ Task 1.1: Project structure created with all module routes
@@ -307,6 +307,12 @@ This product reduces information latency and organizes intelligence into actiona
   - Calculates market metrics (liquidity, volume, yes price) from token data
   - Real-time market data integration
   - Search works across market questions, slugs, and categories
+- ✅ **Phase 6: Arbitrage Scanner Module**
+  - Task 6.1: Arbitrage Display - Connection status indicator, stats (opportunities, avg spread, best spread, last updated), auto-refresh every 45 seconds
+  - Task 6.2: Arbitrage Filters - Category filters (all, sports, politics, crypto, nfl, nba, nhl, mlb, cfb, cbb)
+  - Task 6.3: Arbitrage Logic & Display - Market matching algorithm, spread calculation with fees (Polymarket 2%, Kalshi 10%), opportunity table
+  - Task 6.4: Arbitrage UX Content - Disclaimer text, "How arbitrage works" explanation, profit/loss indicators
+  - **Note:** Kalshi API integration is placeholder - requires API access when available
 
 **Shared Components Created:**
 - LoadingSpinner
