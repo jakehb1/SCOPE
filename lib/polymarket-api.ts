@@ -261,6 +261,10 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
         const volume = parseFloat(market.volume || '0') || 0;
         const slug = market.slug || market.conditionId;
         
+        // Construct URL using condition ID - Polymarket uses /market/{conditionId} format
+        // The slug from API may not match the actual URL structure
+        const marketUrl = `https://polymarket.com/market/${market.conditionId}`;
+        
         markets.push({
           id: market.conditionId,
           question: market.question,
@@ -268,7 +272,7 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
           endDate: market.endDate ? new Date(market.endDate).toISOString() : new Date().toISOString(),
           liquidity: liquidity,
           volume: volume,
-          url: `https://polymarket.com/event/${slug}`,
+          url: marketUrl,
           createdAt: market.createdAt || new Date().toISOString(),
           category: inferCategory({ question: market.question, tags: [] }),
           conditionId: market.conditionId,
