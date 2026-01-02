@@ -74,7 +74,7 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
       href={market.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-white rounded-xl p-6 flex flex-col shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group"
+      className="bg-white rounded-2xl p-6 flex flex-col border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 cursor-pointer group"
     >
       {/* Header: Category Tag and Date */}
       <div className="flex justify-between items-start mb-4">
@@ -107,7 +107,7 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
       {onViewContext && (
         <button
           onClick={handleContextClick}
-          className="bg-primary-black text-primary-offwhite px-4 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all mt-auto"
+          className="bg-primary-black text-primary-offwhite px-4 py-2 rounded-xl font-medium hover:bg-opacity-90 transition-all mt-auto shadow-sm hover:shadow-md"
         >
           get context
         </button>

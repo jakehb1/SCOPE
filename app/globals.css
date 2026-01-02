@@ -97,15 +97,31 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-black text-primary-offwhite px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-200;
+    @apply bg-primary-black text-primary-offwhite px-6 py-3 rounded-xl font-semibold hover:bg-opacity-90 transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .btn-secondary {
-    @apply bg-primary-grey text-primary-offwhite px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200;
+    @apply bg-primary-grey text-primary-offwhite px-6 py-3 rounded-xl font-semibold hover:bg-opacity-80 transition-all duration-200 shadow-sm hover:shadow-md;
   }
 
   .section-container {
     @apply container mx-auto px-4 py-12 md:px-6 lg:px-8;
+  }
+
+  .elevated-card {
+    @apply bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300;
+  }
+
+  .dashboard-section {
+    @apply mb-8;
+  }
+
+  .dashboard-title {
+    @apply text-4xl md:text-5xl font-bold text-primary-black mb-2 tracking-tight;
+  }
+
+  .dashboard-subtitle {
+    @apply text-lg text-primary-grey font-medium;
   }
 }
 

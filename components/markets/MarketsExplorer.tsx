@@ -140,70 +140,51 @@ export default function MarketsExplorer() {
   ];
 
   return (
-    <div className="section-container py-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
-          {/* Title and Subtitle */}
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-black mb-2">markets</h1>
-            <p className="text-primary-black opacity-90">browse and track prediction markets from polymarket</p>
-          </div>
-
-          {/* Sorting Buttons */}
-          <div className="flex items-center gap-3">
-            {sortOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSortBy(option.value)}
-                className={`px-4 py-2 rounded-full font-medium transition-all ${
-                  sortBy === option.value
-                    ? 'bg-primary-black text-primary-offwhite'
-                    : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="search markets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white rounded-full border-2 border-white focus:outline-none focus:border-primary-black text-primary-black"
+    <DashboardContainer
+      title="markets"
+      subtitle="browse and track prediction markets from polymarket"
+      actions={
+        <div className="flex items-center gap-3">
+          {sortOptions.map((option) => (
+            <PillButton
+              key={option.value}
+              label={option.label}
+              active={sortBy === option.value}
+              onClick={() => setSortBy(option.value)}
             />
-          </div>
+          ))}
         </div>
+      }
+    >
+      {/* Search Bar */}
+      <div className="mb-8">
+        <ElevatedInput
+          type="text"
+          placeholder="search markets..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          icon={
+            <svg className="w-5 h-5 text-primary-grey" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          }
+          className="max-w-md"
+        />
+      </div>
 
-        {/* Category Filters */}
-        <div className="mb-6">
-          <p className="text-primary-black text-sm font-medium mb-3 uppercase tracking-wide">FILTER BY CATEGORY</p>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setCategory(cat.value)}
-                className={`px-4 py-2 rounded-full font-medium transition-all ${
-                  category === cat.value
-                    ? 'bg-primary-black text-primary-offwhite'
-                    : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+      {/* Category Filters */}
+      <div className="mb-8">
+        <p className="text-primary-black text-sm font-medium mb-4 uppercase tracking-wide">FILTER BY CATEGORY</p>
+        <div className="flex flex-wrap gap-3">
+          {categories.map((cat) => (
+            <PillButton
+              key={cat.value}
+              label={cat.label}
+              active={category === cat.value}
+              onClick={() => setCategory(cat.value)}
+              variant="subtle"
+            />
+          ))}
         </div>
       </div>
 
@@ -255,11 +236,12 @@ export default function MarketsExplorer() {
 
           {/* Load More Button */}
           {hasMore && (
-            <div className="text-center">
-              <button
+            <div className="text-center mt-8">
+              <ElevatedButton
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="bg-primary-black text-primary-offwhite px-6 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-200"
+                size="lg"
+                className="rounded-full"
               >
                 {loadingMore ? (
                   <>
@@ -269,7 +251,7 @@ export default function MarketsExplorer() {
                 ) : (
                   'Load More Markets'
                 )}
-              </button>
+              </ElevatedButton>
             </div>
           )}
         </>
@@ -281,6 +263,6 @@ export default function MarketsExplorer() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
-    </div>
+    </DashboardContainer>
   );
 }

@@ -112,7 +112,7 @@ export default function MarketChat() {
       {/* Model Selector and Budget Input */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* Model Selector */}
-        <div className="bg-white rounded-lg p-4">
+        <ElevatedCard>
           <label htmlFor="model" className="block text-sm font-medium text-primary-black mb-2">
             Model
           </label>
@@ -120,15 +120,15 @@ export default function MarketChat() {
             id="model"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black bg-white"
+            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-black focus:border-transparent text-primary-black bg-white shadow-sm"
           >
             <option value="opus">Opus</option>
             <option value="deepseek">DeepSeek</option>
           </select>
-        </div>
+        </ElevatedCard>
 
         {/* Budget Input */}
-        <div className="bg-white rounded-lg p-4">
+        <ElevatedCard>
           <label htmlFor="budget" className="block text-sm font-medium text-primary-black mb-2">
             Your Budget (optional - helps with position sizing advice)
           </label>
@@ -141,22 +141,22 @@ export default function MarketChat() {
               min="0"
               step="0.01"
               placeholder="e.g., 500"
-              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black"
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-black focus:border-transparent text-primary-black shadow-sm"
             />
             {userBudget && (
               <button
                 onClick={() => setUserBudget('')}
-                className="px-4 py-2 bg-gray-200 text-primary-black rounded-lg hover:bg-gray-300 transition-all"
+                className="px-4 py-2 bg-gray-100 text-primary-black rounded-xl hover:bg-gray-200 transition-all border border-gray-200"
               >
                 Clear
               </button>
             )}
           </div>
-        </div>
+        </ElevatedCard>
       </div>
 
       {/* Chat Container */}
-      <div className="bg-white rounded-lg border-2 border-primary-black flex flex-col" style={{ height: '600px' }}>
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden" style={{ height: '600px' }}>
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message, index) => (
@@ -165,16 +165,16 @@ export default function MarketChat() {
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-4 ${
+                className={`max-w-[80%] rounded-xl p-4 ${
                   message.role === 'user'
-                    ? 'bg-primary-black text-primary-offwhite'
-                    : 'bg-gray-100 text-primary-black'
+                    ? 'bg-primary-black text-primary-offwhite shadow-sm'
+                    : 'bg-gray-100 text-primary-black border border-gray-200'
                 }`}
               >
                 <div className="whitespace-pre-wrap break-words">{message.content}</div>
                 {message.timestamp && (
                   <div className={`text-xs mt-2 ${
-                    message.role === 'user' ? 'text-white opacity-70' : 'text-gray-500'
+                    message.role === 'user' ? 'text-primary-offwhite opacity-70' : 'text-gray-500'
                   }`}>
                     {formatTime(message.timestamp)}
                   </div>
@@ -185,7 +185,7 @@ export default function MarketChat() {
           
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-lg p-4 flex items-center gap-2">
+              <div className="bg-gray-100 rounded-xl p-4 flex items-center gap-2 border border-gray-200">
                 <LoadingSpinner size="sm" />
                 <span className="text-gray-600">Thinking...</span>
               </div>
@@ -196,7 +196,7 @@ export default function MarketChat() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t-2 border-primary-black p-4">
+        <div className="border-t border-gray-200 p-4 bg-gray-50">
           <form onSubmit={handleSubmit} className="flex gap-3">
             <textarea
               ref={inputRef}
@@ -205,13 +205,13 @@ export default function MarketChat() {
               onKeyDown={handleKeyDown}
               placeholder="Ask me about markets, betting strategies, risk management..."
               rows={2}
-              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black resize-none"
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-black focus:border-transparent text-primary-black resize-none bg-white shadow-sm"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="bg-primary-black text-primary-offwhite px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+              className="bg-primary-black text-primary-offwhite px-6 py-2 rounded-xl font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px] shadow-sm hover:shadow-md"
             >
               {loading ? (
                 <>
