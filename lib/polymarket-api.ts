@@ -364,12 +364,78 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
 
 /**
  * Fetch a single market by ID or slug
+ * Uses Gamma API first (better data), falls back to CLOB
  */
 export async function fetchMarket(idOrSlug: string): Promise<Market | null> {
   try {
+    // Try Gamma API first for better market data
+    const response = await fetch(
+      `https://gamma-api.polymarket.com/events?closed=false&limit=1000`,
+      { 
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 30 }
+      }
+    );
+    
+    if (response.ok) {
+      const events = await response.json();
+      
+      // Search through events and markets
+      for (const event of events) {
+        if (event.markets && Array.isArray(event.markets)) {
+          const market = event.markets.find((m: any) => 
+            m.conditionId?.toLowerCase() === idOrSlug.toLowerCase() ||
+            m.slug === idOrSlug ||
+            m.id === idOrSlug
+          );
+          
+          if (market && market.active && !market.closed) {
+            const conditionId = market.conditionId;
+            const liquidity = parseFloat(market.liquidity || '0') || 0;
+            const volume = parseFloat(market.volume || '0') || 0;
+            const slug = market.slug || conditionId;
+            
+            // Get price from CLOB
+            const priceMap = await fetchCLOBPrices([conditionId.toLowerCase()]);
+            let yesPrice = priceMap.get(conditionId.toLowerCase()) || 50;
+            
+            if (yesPrice === 50) {
+              if (market.lastTradePrice !== undefined && market.lastTradePrice !== null) {
+                const price = parseFloat(market.lastTradePrice);
+                yesPrice = price > 1 ? price : price * 100;
+              }
+            }
+            
+            // Build URL
+            const eventSlug = event.slug || '';
+            const marketUrl = (eventSlug && market.slug)
+              ? `https://polymarket.com/event/${eventSlug}/${market.slug}`
+              : market.slug
+              ? `https://polymarket.com/event/${market.slug}`
+              : `https://polymarket.com/market/${conditionId}`;
+            
+            return {
+              id: conditionId,
+              question: market.question,
+              slug: slug,
+              endDate: market.endDate ? new Date(market.endDate).toISOString() : new Date().toISOString(),
+              liquidity: liquidity,
+              volume: volume,
+              url: marketUrl,
+              createdAt: market.createdAt || new Date().toISOString(),
+              category: inferCategory({ question: market.question, tags: [] }),
+              conditionId: conditionId,
+              yesPrice: yesPrice,
+            };
+          }
+        }
+      }
+    }
+    
+    // Fallback to CLOB API
     const client = new ClobClient(CLOB_HOST, CHAIN_ID);
-    const response = await client.getMarkets();
-    const marketsArray = response?.data || [];
+    const clobResponse = await client.getMarkets();
+    const marketsArray = clobResponse?.data || [];
     
     const market = marketsArray.find((m: any) => 
       (m.condition_id || m.id) === idOrSlug || 
