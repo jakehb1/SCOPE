@@ -29,9 +29,12 @@ export async function generateMarketContext(
   const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
-    console.warn('OPENAI_API_KEY not set, returning fallback context');
+    console.warn('⚠️ OPENAI_API_KEY not set, returning fallback context');
+    console.log('Available env vars:', Object.keys(process.env).filter(k => k.includes('OPENAI')));
     return generateFallbackContext(request);
   }
+  
+  console.log('✅ OpenAI API key found for market context, length:', apiKey.length);
 
   try {
     const prompt = buildPrompt(request);

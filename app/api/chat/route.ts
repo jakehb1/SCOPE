@@ -36,14 +36,18 @@ export async function POST(request: Request) {
     }
 
     // Generate AI response
+    console.log('📨 Chat request received:', { messageLength: message.length, hasMarkets: !!context.markets, userBudget });
     const response = await generateChatResponse(message, context);
+    console.log('✅ Chat response generated, length:', response.length);
 
     return NextResponse.json({
       message: response,
       timestamp: new Date().toISOString(),
     }, {
       headers: {
-        'Cache-Control': 'no-store', // Don't cache chat responses
+        'Cache-Control': 'no-store, no-cache, must-revalidate', // Don't cache chat responses
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
   } catch (error) {

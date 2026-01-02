@@ -26,11 +26,23 @@ export async function generateChatResponse(
   userMessage: string,
   context: ChatContext = {}
 ): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  // Try multiple ways to get the API key (Next.js loads .env.local automatically)
+  const apiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  
+  // Debug logging
+  console.log('🔍 Checking for OpenAI API key...');
+  console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+  console.log('OPENAI_API_KEY length:', process.env.OPENAI_API_KEY?.length || 0);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
   
   if (!apiKey) {
+    console.error('❌ OPENAI_API_KEY not found in environment variables');
+    console.log('Available OPENAI env vars:', Object.keys(process.env).filter(k => k.includes('OPENAI')));
+    console.log('All env vars starting with OPEN:', Object.keys(process.env).filter(k => k.startsWith('OPEN')));
     return generateFallbackResponse(userMessage, context);
   }
+  
+  console.log('✅ OpenAI API key found, length:', apiKey.length, 'starts with:', apiKey.substring(0, 10));
 
   try {
     const messages: ChatMessage[] = [
@@ -61,7 +73,14 @@ export async function generateChatResponse(
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
+      console.error('❌ OpenAI API error:', response.status, error);
+      // Try to parse error for more details
+      try {
+        const errorJson = JSON.parse(error);
+        console.error('Error details:', errorJson);
+      } catch (e) {
+        // Not JSON, that's fine
+      }
       return generateFallbackResponse(userMessage, context);
     }
 

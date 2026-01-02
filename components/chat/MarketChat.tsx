@@ -46,6 +46,7 @@ export default function MarketChat() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({
           message: userMessage.content,
@@ -54,6 +55,7 @@ export default function MarketChat() {
           marketLimit: 50,
           userBudget: userBudget ? parseFloat(userBudget) : undefined,
         }),
+        cache: 'no-store',
       });
 
       if (!response.ok) {
