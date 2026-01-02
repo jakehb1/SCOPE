@@ -5,6 +5,10 @@ import { Market, MarketCategory, MarketSortOption } from '@/types';
 import MarketCard from '@/components/shared/MarketCard';
 import MarketContextModal from '@/components/shared/MarketContextModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import DashboardContainer from '@/components/shared/DashboardContainer';
+import ElevatedInput from '@/components/shared/ElevatedInput';
+import PillButton from '@/components/shared/PillButton';
+import ElevatedButton from '@/components/shared/ElevatedButton';
 
 const MARKETS_PER_PAGE = 20;
 
