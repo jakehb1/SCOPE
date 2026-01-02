@@ -25,11 +25,11 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary-red">
+    <header className="sticky top-0 z-50 bg-primary-black">
       <nav className="container mx-auto px-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-white">
+          <Link href="/" className="text-2xl font-bold text-primary-offwhite">
             scope
           </Link>
 
@@ -41,8 +41,8 @@ export default function Header() {
                 href={item.href}
                 className={`px-4 py-2 rounded-lg font-medium capitalize transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'bg-white text-primary-red shadow-md'
-                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                    ? 'bg-primary-offwhite text-primary-black shadow-md'
+                    : 'bg-primary-grey bg-opacity-20 text-primary-offwhite hover:bg-opacity-30'
                 }`}
               >
                 {item.name}
@@ -54,7 +54,7 @@ export default function Header() {
               href="https://twitter.com/scope"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 rounded-lg font-medium bg-white bg-opacity-20 text-white hover:bg-opacity-30 transition-all duration-200 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg font-medium bg-primary-grey bg-opacity-20 text-primary-offwhite hover:bg-opacity-30 transition-all duration-200 flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -65,7 +65,7 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-white focus:outline-none"
+            className="md:hidden text-primary-offwhite focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -96,8 +96,8 @@ export default function Header() {
                 href={item.href}
                 className={`block px-4 py-2 rounded-lg font-medium capitalize transition-all ${
                   isActive(item.href)
-                    ? 'bg-white text-primary-red'
-                    : 'bg-white bg-opacity-20 text-white'
+                    ? 'bg-primary-offwhite text-primary-black'
+                    : 'bg-primary-grey bg-opacity-20 text-primary-offwhite'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -108,7 +108,7 @@ export default function Header() {
               href="https://twitter.com/scope"
               target="_blank"
               rel="noopener noreferrer"
-              className="block px-4 py-2 rounded-lg font-medium bg-white bg-opacity-20 text-white flex items-center gap-2"
+              className="block px-4 py-2 rounded-lg font-medium bg-primary-grey bg-opacity-20 text-primary-offwhite flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -79,7 +79,7 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
       {/* Header: Category Tag and Date */}
       <div className="flex justify-between items-start mb-4">
         {market.category && market.category !== 'all' && (
-          <span className={`${categoryColor} text-white text-xs font-medium px-3 py-1 rounded-full capitalize`}>
+          <span className={`${categoryColor} text-primary-offwhite text-xs font-medium px-3 py-1 rounded-full capitalize`}>
             {market.category}
           </span>
         )}
@@ -87,13 +87,13 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
       </div>
 
       {/* Question */}
-      <h3 className="text-lg font-bold text-primary-black mb-4 line-clamp-2 flex-1 group-hover:text-primary-red transition-colors">
+      <h3 className="text-lg font-bold text-primary-black mb-4 line-clamp-2 flex-1 group-hover:text-primary-grey transition-colors">
         {market.question}
       </h3>
 
       {/* Prediction Percentage */}
       <div className="mb-4">
-        <div className="text-4xl font-bold text-primary-red mb-1">{yesPrice}%</div>
+        <div className="text-4xl font-bold text-primary-black mb-1">{yesPrice}%</div>
         <div className="text-sm text-gray-600">yes price</div>
       </div>
 
@@ -107,7 +107,7 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
       {onViewContext && (
         <button
           onClick={handleContextClick}
-          className="bg-primary-red text-white px-4 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all mt-auto"
+          className="bg-primary-black text-primary-offwhite px-4 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all mt-auto"
         >
           get context
         </button>

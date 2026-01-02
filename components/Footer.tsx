@@ -8,7 +8,7 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary-black text-white py-12">
+    <footer className="bg-primary-black text-primary-offwhite py-12">
       <div className="section-container">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Social Links */}
@@ -19,7 +19,7 @@ export default function Footer() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium hover:text-primary-red transition-colors duration-200"
+                className="font-medium hover:text-primary-grey transition-colors duration-200"
               >
                 {link.name}
               </Link>

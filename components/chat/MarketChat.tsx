@@ -105,8 +105,8 @@ export default function MarketChat() {
     <div className="section-container py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Trading Advisor Chat</h1>
-        <p className="text-white opacity-90">Get AI-powered betting advice for prediction markets</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-primary-black mb-2">Trading Advisor Chat</h1>
+        <p className="text-primary-black opacity-90">Get AI-powered betting advice for prediction markets</p>
       </div>
 
       {/* Model Selector and Budget Input */}
@@ -120,7 +120,7 @@ export default function MarketChat() {
             id="model"
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black bg-white"
+            className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black bg-white"
           >
             <option value="opus">Opus</option>
             <option value="deepseek">DeepSeek</option>
@@ -141,7 +141,7 @@ export default function MarketChat() {
               min="0"
               step="0.01"
               placeholder="e.g., 500"
-              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black"
+              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black"
             />
             {userBudget && (
               <button
@@ -167,7 +167,7 @@ export default function MarketChat() {
               <div
                 className={`max-w-[80%] rounded-lg p-4 ${
                   message.role === 'user'
-                    ? 'bg-primary-red text-white'
+                    ? 'bg-primary-black text-primary-offwhite'
                     : 'bg-gray-100 text-primary-black'
                 }`}
               >
@@ -205,13 +205,13 @@ export default function MarketChat() {
               onKeyDown={handleKeyDown}
               placeholder="Ask me about markets, betting strategies, risk management..."
               rows={2}
-              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black resize-none"
+              className="flex-1 px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black resize-none"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="bg-primary-red text-white px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+              className="bg-primary-black text-primary-offwhite px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
             >
               {loading ? (
                 <>
@@ -230,7 +230,7 @@ export default function MarketChat() {
 
       {/* Quick Actions */}
       <div className="mt-6">
-        <p className="text-white text-sm mb-3">Quick questions:</p>
+        <p className="text-primary-black text-sm mb-3">Quick questions:</p>
         <div className="flex flex-wrap gap-2">
           {[
             "I have $500 to spend, what should I bet on?",
@@ -244,7 +244,7 @@ export default function MarketChat() {
                 setInput(suggestion);
                 inputRef.current?.focus();
               }}
-              className="px-4 py-2 bg-white bg-opacity-20 text-white rounded-full text-sm hover:bg-opacity-30 transition-all"
+              className="px-4 py-2 bg-white bg-opacity-20 text-primary-black rounded-full text-sm hover:bg-opacity-30 transition-all"
             >
               {suggestion}
             </button>

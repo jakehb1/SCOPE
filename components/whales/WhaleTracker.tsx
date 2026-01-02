@@ -88,20 +88,20 @@ export default function WhaleTracker() {
 
   return (
     <div className="section-container py-8">
-      <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Whale Leaderboard</h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-primary-black mb-8">Whale Leaderboard</h1>
 
       {/* Filters */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-wrap gap-3">
-          <label className="text-white font-medium">Category:</label>
+          <label className="text-primary-black font-medium">Category:</label>
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setCategory(cat.value)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 category === cat.value
-                  ? 'bg-white text-primary-red'
-                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                  ? 'bg-primary-black text-primary-offwhite'
+                  : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
               }`}
             >
               {cat.label}
@@ -110,15 +110,15 @@ export default function WhaleTracker() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <label className="text-white font-medium">Time Period:</label>
+          <label className="text-primary-black font-medium">Time Period:</label>
           {timePeriods.map((period) => (
             <button
               key={period.value}
               onClick={() => setTimePeriod(period.value)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 timePeriod === period.value
-                  ? 'bg-white text-primary-red'
-                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                  ? 'bg-primary-black text-primary-offwhite'
+                  : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
               }`}
             >
               {period.label}
@@ -127,7 +127,7 @@ export default function WhaleTracker() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <label className="text-white font-medium">Sort By:</label>
+          <label className="text-primary-black font-medium">Sort By:</label>
           <button
             onClick={() => setOrderBy('PNL')}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
@@ -155,14 +155,14 @@ export default function WhaleTracker() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner size="lg" />
-          <span className="ml-4 text-white opacity-90">Loading leaderboard...</span>
+          <span className="ml-4 text-primary-black opacity-90">Loading leaderboard...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
         <div className="text-center py-12">
-          <p className="text-white mb-4">{error}</p>
+          <p className="text-primary-black mb-4">{error}</p>
         </div>
       )}
 
@@ -213,10 +213,10 @@ export default function WhaleTracker() {
                             />
                           )}
                           <div>
-                            <div className="text-sm font-medium text-primary-black hover:text-primary-red transition-colors">
+                            <div className="text-sm font-medium text-primary-black hover:text-primary-grey transition-colors">
                               {entry.userName || entry.proxyWallet.slice(0, 8) + '...'}
                               {entry.verifiedBadge && (
-                                <span className="ml-2 text-primary-red">✓</span>
+                                <span className="ml-2 text-primary-grey">✓</span>
                               )}
                             </div>
                             {entry.xUsername && (
@@ -244,7 +244,7 @@ export default function WhaleTracker() {
 
       {!loading && !error && entries.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-white opacity-90">No leaderboard data available.</p>
+          <p className="text-primary-black opacity-90">No leaderboard data available.</p>
         </div>
       )}
     </div>

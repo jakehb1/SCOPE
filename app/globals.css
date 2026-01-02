@@ -68,7 +68,8 @@
 }
 
 :root {
-  --color-primary-red: #8B3A3A;
+  --color-primary-grey: #6B7280;
+  --color-primary-offwhite: #F9FAFB;
   --color-primary-black: #000000;
 }
 
@@ -80,7 +81,7 @@
   }
 
   body {
-    @apply bg-primary-red text-white;
+    @apply bg-primary-offwhite text-primary-black;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -96,11 +97,11 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-200;
+    @apply bg-primary-black text-primary-offwhite px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-200;
   }
 
   .btn-secondary {
-    @apply bg-primary-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200;
+    @apply bg-primary-grey text-primary-offwhite px-6 py-3 rounded-lg font-semibold hover:bg-opacity-80 transition-all duration-200;
   }
 
   .section-container {

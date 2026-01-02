@@ -113,8 +113,8 @@ export default function MarketRecommendations() {
     <div className="section-container py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">AI Market Recommendations</h1>
-        <p className="text-white opacity-90">Get personalized market recommendations based on your budget and preferences</p>
+        <h1 className="text-4xl md:text-5xl font-bold text-primary-black mb-2">AI Market Recommendations</h1>
+        <p className="text-primary-black opacity-90">Get personalized market recommendations based on your budget and preferences</p>
       </div>
 
       {/* Form */}
@@ -133,7 +133,7 @@ export default function MarketRecommendations() {
               min="1"
               step="0.01"
               required
-              className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black"
+              className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black"
               placeholder="500"
             />
           </div>
@@ -148,7 +148,7 @@ export default function MarketRecommendations() {
               value={preferences}
               onChange={(e) => setPreferences(e.target.value)}
               rows={3}
-              className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-red text-primary-black"
+              className="w-full px-4 py-2 border-2 border-primary-black rounded-lg focus:outline-none focus:border-primary-grey text-primary-black"
               placeholder="e.g., I want to focus on high-probability markets, or I'm looking for value plays..."
             />
           </div>
@@ -166,7 +166,7 @@ export default function MarketRecommendations() {
                   onClick={() => setRiskTolerance(level)}
                   className={`px-4 py-2 rounded-full font-medium transition-all ${
                     riskTolerance === level
-                      ? 'bg-primary-red text-white'
+                      ? 'bg-primary-black text-primary-offwhite'
                       : 'bg-gray-200 text-primary-black hover:bg-gray-300'
                   }`}
                 >
@@ -189,7 +189,7 @@ export default function MarketRecommendations() {
                   onClick={() => setTimeHorizon(horizon)}
                   className={`px-4 py-2 rounded-full font-medium transition-all ${
                     timeHorizon === horizon
-                      ? 'bg-primary-red text-white'
+                      ? 'bg-primary-black text-primary-offwhite'
                       : 'bg-gray-200 text-primary-black hover:bg-gray-300'
                   }`}
                 >
@@ -212,7 +212,7 @@ export default function MarketRecommendations() {
                   onClick={() => handleCategoryToggle(cat.value)}
                   className={`px-4 py-2 rounded-full font-medium transition-all ${
                     selectedCategories.includes(cat.value)
-                      ? 'bg-primary-red text-white'
+                      ? 'bg-primary-black text-primary-offwhite'
                       : 'bg-gray-200 text-primary-black hover:bg-gray-300'
                   }`}
                 >
@@ -226,7 +226,7 @@ export default function MarketRecommendations() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary-black text-primary-offwhite px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -261,7 +261,7 @@ export default function MarketRecommendations() {
 
           {/* Recommendations */}
           <div>
-            <h2 className="text-2xl font-bold text-white mb-4">
+            <h2 className="text-2xl font-bold text-primary-black mb-4">
               Recommended Markets ({results.recommendations.length})
             </h2>
             <div className="space-y-4">
@@ -270,7 +270,7 @@ export default function MarketRecommendations() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-primary-red text-white px-3 py-1 rounded-full font-bold text-sm">
+                        <span className="bg-primary-black text-primary-offwhite px-3 py-1 rounded-full font-bold text-sm">
                           #{index + 1}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -295,7 +295,7 @@ export default function MarketRecommendations() {
                       <p className="text-gray-700 mb-3">{rec.reasoning}</p>
                     </div>
                     <div className="ml-4 text-right">
-                      <div className="text-2xl font-bold text-primary-red mb-1">
+                      <div className="text-2xl font-bold text-primary-black mb-1">
                         {formatCurrency(rec.suggestedAllocation)}
                       </div>
                       <div className="text-sm text-gray-600">Allocation</div>
@@ -330,7 +330,7 @@ export default function MarketRecommendations() {
                       href={rec.market.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-primary-red text-white px-6 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all"
+                      className="inline-block bg-primary-black text-primary-offwhite px-6 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all"
                     >
                       View Market on Polymarket →
                     </a>

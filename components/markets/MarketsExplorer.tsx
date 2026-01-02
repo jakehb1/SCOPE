@@ -146,8 +146,8 @@ export default function MarketsExplorer() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">
           {/* Title and Subtitle */}
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">markets</h1>
-            <p className="text-white opacity-90">browse and track prediction markets from polymarket</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-primary-black mb-2">markets</h1>
+            <p className="text-primary-black opacity-90">browse and track prediction markets from polymarket</p>
           </div>
 
           {/* Sorting Buttons */}
@@ -158,8 +158,8 @@ export default function MarketsExplorer() {
                 onClick={() => setSortBy(option.value)}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   sortBy === option.value
-                    ? 'bg-white text-primary-red'
-                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                    ? 'bg-primary-black text-primary-offwhite'
+                    : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
                 }`}
               >
                 {option.label}
@@ -188,7 +188,7 @@ export default function MarketsExplorer() {
 
         {/* Category Filters */}
         <div className="mb-6">
-          <p className="text-white text-sm font-medium mb-3 uppercase tracking-wide">FILTER BY CATEGORY</p>
+          <p className="text-primary-black text-sm font-medium mb-3 uppercase tracking-wide">FILTER BY CATEGORY</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
@@ -196,8 +196,8 @@ export default function MarketsExplorer() {
                 onClick={() => setCategory(cat.value)}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   category === cat.value
-                    ? 'bg-white text-primary-red'
-                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                    ? 'bg-primary-black text-primary-offwhite'
+                    : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
                 }`}
               >
                 {cat.label}
@@ -211,20 +211,20 @@ export default function MarketsExplorer() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner size="lg" />
-          <span className="ml-4 text-white opacity-90">Loading markets...</span>
+          <span className="ml-4 text-primary-black opacity-90">Loading markets...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
         <div className="text-center py-12">
-          <p className="text-white mb-4">{error}</p>
+          <p className="text-primary-black mb-4">{error}</p>
         </div>
       )}
 
       {/* Results Count */}
       {!loading && !error && markets.length > 0 && (
-        <div className="mb-4 text-white opacity-90 text-sm">
+          <div className="mb-4 text-primary-black opacity-90 text-sm">
           Showing {displayedMarkets.length} of {filteredMarkets.length} markets
           {searchQuery && ` matching "${searchQuery}"`}
         </div>
@@ -235,7 +235,7 @@ export default function MarketsExplorer() {
         <>
           {displayedMarkets.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white opacity-90">
+              <p className="text-primary-black opacity-90">
                 {searchQuery 
                   ? `No markets found matching "${searchQuery}". Try a different search term.`
                   : 'No markets found matching your filters.'}
@@ -259,7 +259,7 @@ export default function MarketsExplorer() {
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="bg-white text-primary-red px-6 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-200"
+                className="bg-primary-black text-primary-offwhite px-6 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-200"
               >
                 {loadingMore ? (
                   <>

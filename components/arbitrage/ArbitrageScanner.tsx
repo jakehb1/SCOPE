@@ -90,14 +90,14 @@ export default function ArbitrageScanner() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Arbitrage Scanner</h1>
-            <p className="text-white opacity-90">Find price discrepancies between Polymarket and Kalshi</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-primary-black mb-2">Arbitrage Scanner</h1>
+            <p className="text-primary-black opacity-90">Find price discrepancies between Polymarket and Kalshi</p>
           </div>
           
           {/* Connection Status */}
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-            <span className="text-white text-sm">
+            <span className="text-primary-black text-sm">
               {isConnected ? 'Live' : 'Disconnected'}
             </span>
           </div>
@@ -107,22 +107,22 @@ export default function ArbitrageScanner() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-white opacity-70 text-sm mb-1">Opportunities</div>
-              <div className="text-white text-2xl font-bold">{stats.opportunitiesFound}</div>
+              <div className="text-primary-black opacity-70 text-sm mb-1">Opportunities</div>
+              <div className="text-primary-black text-2xl font-bold">{stats.opportunitiesFound}</div>
             </div>
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-white opacity-70 text-sm mb-1">Avg Spread</div>
-              <div className="text-white text-2xl font-bold">{formatSpread(stats.averageSpread)}</div>
+              <div className="text-primary-black opacity-70 text-sm mb-1">Avg Spread</div>
+              <div className="text-primary-black text-2xl font-bold">{formatSpread(stats.averageSpread)}</div>
             </div>
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-white opacity-70 text-sm mb-1">Best Spread</div>
-              <div className={`text-2xl font-bold ${stats.bestSpread > 0 ? 'text-green-400' : 'text-white'}`}>
+              <div className="text-primary-black opacity-70 text-sm mb-1">Best Spread</div>
+              <div className={`text-2xl font-bold ${stats.bestSpread > 0 ? 'text-green-600' : 'text-primary-black'}`}>
                 {formatSpread(stats.bestSpread)}
               </div>
             </div>
             <div className="bg-white bg-opacity-10 rounded-lg p-4">
-              <div className="text-white opacity-70 text-sm mb-1">Last Updated</div>
-              <div className="text-white text-sm">
+              <div className="text-primary-black opacity-70 text-sm mb-1">Last Updated</div>
+              <div className="text-primary-black text-sm">
                 {new Date(stats.lastUpdated).toLocaleTimeString()}
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function ArbitrageScanner() {
 
         {/* Category Filters */}
         <div className="mb-6">
-          <p className="text-white text-sm font-medium mb-3 uppercase tracking-wide">FILTER BY CATEGORY</p>
+          <p className="text-primary-black text-sm font-medium mb-3 uppercase tracking-wide">FILTER BY CATEGORY</p>
           <div className="flex flex-wrap gap-2">
             {ARBITRAGE_CATEGORIES.map((cat) => (
               <button
@@ -139,8 +139,8 @@ export default function ArbitrageScanner() {
                 onClick={() => setCategory(cat.value)}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   category === cat.value
-                    ? 'bg-white text-primary-red'
-                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                    ? 'bg-primary-black text-primary-offwhite'
+                    : 'bg-white bg-opacity-20 text-primary-black hover:bg-opacity-30'
                 }`}
               >
                 {cat.label}
@@ -161,8 +161,8 @@ export default function ArbitrageScanner() {
 
       {/* How Arbitrage Works */}
       <details className="mb-6">
-        <summary className="text-white cursor-pointer font-medium mb-2">How Arbitrage Works</summary>
-        <div className="bg-white bg-opacity-10 rounded-lg p-4 mt-2 text-white text-sm">
+        <summary className="text-primary-black cursor-pointer font-medium mb-2">How Arbitrage Works</summary>
+        <div className="bg-white bg-opacity-10 rounded-lg p-4 mt-2 text-primary-black text-sm">
           <p className="mb-2">
             Arbitrage is the practice of buying an asset on one platform and selling it on another to profit from price differences.
           </p>
@@ -185,17 +185,17 @@ export default function ArbitrageScanner() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner size="lg" />
-          <span className="ml-4 text-white opacity-90">Scanning for opportunities...</span>
+          <span className="ml-4 text-primary-black opacity-90">Scanning for opportunities...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
         <div className="text-center py-12">
-          <p className="text-white mb-4">{error}</p>
+          <p className="text-primary-black mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-white text-primary-red px-6 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all"
+            className="bg-primary-black text-primary-offwhite px-6 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all"
           >
             Retry
           </button>
@@ -207,8 +207,8 @@ export default function ArbitrageScanner() {
         <>
           {opportunities.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white opacity-90 mb-2">No arbitrage opportunities found.</p>
-              <p className="text-white opacity-70 text-sm">
+              <p className="text-primary-black opacity-90 mb-2">No arbitrage opportunities found.</p>
+              <p className="text-primary-black opacity-70 text-sm">
                 {category !== 'all' 
                   ? 'Try selecting a different category or check back later.'
                   : 'Opportunities may be rare. Check back periodically as prices change.'}
@@ -254,7 +254,7 @@ export default function ArbitrageScanner() {
                         }}
                       >
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-primary-black group-hover:text-primary-red transition-colors">
+                          <div className="text-sm font-medium text-primary-black group-hover:text-primary-grey transition-colors">
                             {opp.event}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
@@ -265,7 +265,7 @@ export default function ArbitrageScanner() {
                           <div className="text-sm text-primary-black">
                             {opp.polymarketPrice.toFixed(1)}%
                           </div>
-                          <div className="text-xs text-primary-red">
+                          <div className="text-xs text-primary-grey">
                             Polymarket
                           </div>
                         </td>
@@ -297,7 +297,7 @@ export default function ArbitrageScanner() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-2">
-                            <span className="text-xs text-primary-red font-medium">
+                            <span className="text-xs text-primary-grey font-medium">
                               View →
                             </span>
                           </div>
