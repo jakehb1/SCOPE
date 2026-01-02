@@ -22,6 +22,9 @@ const config: Config = {
         'xl': '1280px',
         '2xl': '1536px',
       },
+      fontFamily: {
+        sans: ['Neue Montreal', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
+      },
     },
   },
   plugins: [],
