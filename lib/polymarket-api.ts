@@ -173,8 +173,38 @@ async function fetchMarketVolumes(conditionIds: string[]): Promise<Map<string, n
 }
 
 /**
+ * Fetch price data from CLOB API for multiple markets
+ */
+async function fetchCLOBPrices(conditionIds: string[]): Promise<Map<string, number>> {
+  const priceMap = new Map<string, number>();
+  
+  try {
+    const client = new ClobClient(CLOB_HOST, CHAIN_ID);
+    const response = await client.getMarkets();
+    const clobMarkets = response?.data || [];
+    
+    // Build a map of condition ID to price
+    for (const clobMarket of clobMarkets) {
+      if (clobMarket.condition_id && clobMarket.tokens && Array.isArray(clobMarket.tokens)) {
+        const conditionId = clobMarket.condition_id.toLowerCase();
+        if (conditionIds.includes(conditionId)) {
+          const metrics = calculateMarketMetrics(clobMarket);
+          if (metrics.yesPrice > 0 && metrics.yesPrice < 100) {
+            priceMap.set(conditionId, metrics.yesPrice);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.debug('Could not fetch CLOB prices:', error);
+  }
+  
+  return priceMap;
+}
+
+/**
  * Fetch markets from Polymarket Gamma API (primary source for active markets with volume)
- * Falls back to CLOB API for order book data when needed
+ * Gets prices from CLOB API in batch
  */
 export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse> {
   try {
@@ -210,8 +240,10 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
     
     // Filter for active markets that haven't ended yet
     const now = new Date();
-    const markets: Market[] = [];
+    const validMarkets: any[] = [];
+    const conditionIds: string[] = [];
     
+    // First pass: collect valid markets and their condition IDs
     for (const event of events) {
       if (!event.markets || !Array.isArray(event.markets)) continue;
       
@@ -238,53 +270,81 @@ export async function fetchMarkets(limit: number = 500): Promise<MarketsResponse
           continue; // Skip markets without end dates
         }
         
-        // Use liquidity from Gamma API (already available)
-        const liquidity = parseFloat(market.liquidity || '0') || 0;
-        
-        // For price, we'll use a default of 50% for now
-        // Fetching CLOB data for each market is too slow (would make 500+ API calls)
-        // TODO: Implement batch price fetching or use Gamma API price data if available
-        let yesPrice = 50;
-        
-        // Try to get price from market data if available
-        if (market.tokens && Array.isArray(market.tokens)) {
-          const yesToken = market.tokens.find((t: any) => 
-            (t.outcome && t.outcome.toLowerCase().includes('yes'))
-          ) || market.tokens[0];
-          
-          if (yesToken && yesToken.price !== undefined && yesToken.price !== null) {
-            const price = parseFloat(yesToken.price);
-            yesPrice = price > 1 ? price : price * 100;
-          }
+        // Skip archived markets
+        if (market.archived === true) {
+          continue;
         }
         
-        const volume = parseFloat(market.volume || '0') || 0;
-        const slug = market.slug || market.conditionId;
+        // Prefer markets with some volume, but don't exclude all zero-volume markets
+        // (new markets may not have volume yet)
         
-        // Construct URL using condition ID - Polymarket uses /market/{conditionId} format
-        // The slug from API may not match the actual URL structure
-        const marketUrl = `https://polymarket.com/market/${market.conditionId}`;
+        validMarkets.push(market);
+        conditionIds.push(market.conditionId.toLowerCase());
         
-        markets.push({
-          id: market.conditionId,
-          question: market.question,
-          slug: slug,
-          endDate: market.endDate ? new Date(market.endDate).toISOString() : new Date().toISOString(),
-          liquidity: liquidity,
-          volume: volume,
-          url: marketUrl,
-          createdAt: market.createdAt || new Date().toISOString(),
-          category: inferCategory({ question: market.question, tags: [] }),
-          conditionId: market.conditionId,
-          yesPrice: yesPrice,
-        });
-        
-        // Stop if we have enough markets
-        if (markets.length >= limit) break;
+        if (validMarkets.length >= limit) break;
       }
       
-      if (markets.length >= limit) break;
+      if (validMarkets.length >= limit) break;
     }
+    
+    // Fetch prices from CLOB API in batch
+    const priceMap = await fetchCLOBPrices(conditionIds);
+    
+    // Second pass: build Market objects with prices
+    // Need to map markets back to their events for URL construction
+    const eventMap = new Map<string, string>();
+    for (const event of events) {
+      if (event.markets && Array.isArray(event.markets)) {
+        for (const m of event.markets) {
+          if (m.conditionId) {
+            eventMap.set(m.conditionId.toLowerCase(), event.slug || '');
+          }
+        }
+      }
+    }
+    
+    const markets: Market[] = validMarkets.map((market) => {
+      const conditionId = market.conditionId.toLowerCase();
+      const liquidity = parseFloat(market.liquidity || '0') || 0;
+      const volume = parseFloat(market.volume || '0') || 0;
+      const slug = market.slug || market.conditionId;
+      
+      // Get price from CLOB, or try Gamma API fields, or use lastTradePrice
+      let yesPrice = priceMap.get(conditionId) || 50;
+      
+      // Fallback to Gamma API price fields if CLOB doesn't have it
+      if (yesPrice === 50) {
+        if (market.lastTradePrice !== undefined && market.lastTradePrice !== null) {
+          const price = parseFloat(market.lastTradePrice);
+          yesPrice = price > 1 ? price : price * 100;
+        } else if (market.bestAsk !== undefined && market.bestAsk !== null) {
+          const price = parseFloat(market.bestAsk);
+          yesPrice = price > 1 ? price : price * 100;
+        }
+      }
+      
+      // Construct URL using event slug and market slug format: /event/{eventSlug}/{marketSlug}
+      const eventSlug = eventMap.get(conditionId) || '';
+      const marketUrl = (eventSlug && market.slug)
+        ? `https://polymarket.com/event/${eventSlug}/${market.slug}`
+        : market.slug
+        ? `https://polymarket.com/event/${market.slug}`
+        : `https://polymarket.com/market/${market.conditionId}`;
+      
+      return {
+        id: market.conditionId,
+        question: market.question,
+        slug: slug,
+        endDate: market.endDate ? new Date(market.endDate).toISOString() : new Date().toISOString(),
+        liquidity: liquidity,
+        volume: volume,
+        url: marketUrl,
+        createdAt: market.createdAt || new Date().toISOString(),
+        category: inferCategory({ question: market.question, tags: [] }),
+        conditionId: market.conditionId,
+        yesPrice: yesPrice,
+      };
+    });
 
     return {
       markets: markets,
