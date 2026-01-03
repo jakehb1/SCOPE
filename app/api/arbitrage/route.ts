@@ -18,6 +18,9 @@ export async function GET(request: Request) {
       fetchMarkets(limit),
       fetchKalshiMarkets(limit),
     ]);
+    
+    // Log for debugging
+    console.log(`📊 Arbitrage check: ${polyMarkets.markets.length} Polymarket markets, ${kalshiData.markets.length} Kalshi markets`);
 
     // Find arbitrage opportunities
     const allOpportunities = findArbitrageOpportunities(
