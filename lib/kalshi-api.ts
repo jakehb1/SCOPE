@@ -52,10 +52,11 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     const privateKey = parsePrivateKey(privateKeyString);
     
     // Kalshi API endpoint
-    // Based on docs: https://docs.kalshi.com/getting_started/quick_start_websockets
+    // Based on docs: https://docs.kalshi.com/getting_started/quick_start_authenticated_requests
     // REST API base URL - try elections API first (matches WebSocket pattern)
     const baseUrl = process.env.KALSHI_API_URL || 'https://api.elections.kalshi.com/trade-api/v2';
-    const path = '/events';
+    // Try /markets endpoint first (per Kalshi docs), fallback to /events
+    const path = '/markets';
     const queryParams = new URLSearchParams({ limit: limit.toString() });
     const fullUrl = `${baseUrl}${path}?${queryParams.toString()}`;
     

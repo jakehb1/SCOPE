@@ -101,6 +101,7 @@ export async function GET(request: Request) {
           hasPolymarketMarkets: polyMarkets.markets.length > 0,
           hasKalshiMarkets: kalshiData.markets.length > 0,
         },
+        kalshiError: kalshiData.error || null,
         opportunities: {
           found: opportunities.length,
           profitable: opportunities.filter(opp => opp.spread > 0).length,
