@@ -7,9 +7,32 @@
 
 import { ClobClient } from '@polymarket/clob-client';
 import { Market, MarketsResponse, MarketCategory } from '@/types';
+import { isSportsMarketByTags, getMarketSport } from './polymarket-sports';
 
 /**
  * Infer category from market question/tags
+ * Uses Polymarket Sports API for better sports detection
+ */
+async function inferCategoryWithSports(market: any): Promise<MarketCategory> {
+  // First check if market has sports tags using Polymarket Sports API
+  if (market.tags && Array.isArray(market.tags) && market.tags.length > 0) {
+    try {
+      const isSports = await isSportsMarketByTags(market.tags);
+      if (isSports) {
+        return 'sports';
+      }
+    } catch (error) {
+      // Fall back to text-based inference if Sports API fails
+      console.debug('Could not check sports tags, falling back to text inference:', error);
+    }
+  }
+  
+  // Fall back to text-based inference
+  return inferCategory(market);
+}
+
+/**
+ * Infer category from market question/tags (text-based fallback)
  * This is a simple heuristic - in production, this would come from the API
  */
 function inferCategory(market: any): MarketCategory {
@@ -335,7 +358,8 @@ export async function fetchMarkets(limit: number = 1000): Promise<MarketsRespons
       }
     }
     
-    const markets: Market[] = marketsToProcess.map((market) => {
+    // Process markets with async category inference using Sports API
+    const markets: Market[] = await Promise.all(marketsToProcess.map(async (market) => {
       const conditionId = market.conditionId.toLowerCase();
       const liquidity = parseFloat(market.liquidity || '0') || 0;
       const volume = parseFloat(market.volume || '0') || 0;
@@ -363,6 +387,12 @@ export async function fetchMarkets(limit: number = 1000): Promise<MarketsRespons
         ? `https://polymarket.com/event/${market.slug}`
         : `https://polymarket.com/market/${market.conditionId}`;
       
+      // Use Sports API for better category detection
+      const category = await inferCategoryWithSports({ 
+        question: market.question, 
+        tags: market.tags || [] 
+      });
+      
       return {
         id: market.conditionId,
         question: market.question,
@@ -372,11 +402,11 @@ export async function fetchMarkets(limit: number = 1000): Promise<MarketsRespons
         volume: volume,
         url: marketUrl,
         createdAt: market.createdAt || new Date().toISOString(),
-        category: inferCategory({ question: market.question, tags: [] }),
+        category: category,
         conditionId: market.conditionId,
         yesPrice: yesPrice,
       };
-    });
+    }));
 
     return {
       markets: markets,
