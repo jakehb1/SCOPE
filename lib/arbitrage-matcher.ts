@@ -57,7 +57,7 @@ function extractKeyTerms(text: string): string[] {
 /**
  * Check if two markets are likely the same event
  */
-function isSameEvent(polyMarket: Market, kalshiMarket: KalshiMarket, threshold: number = 0.5): boolean {
+function isSameEvent(polyMarket: Market, kalshiMarket: KalshiMarket, threshold: number = 0.3): boolean {
   const polyText = polyMarket.question.toLowerCase();
   const kalshiText = (kalshiMarket.title + ' ' + (kalshiMarket.subtitle || '')).toLowerCase();
   
@@ -144,8 +144,9 @@ export function findArbitrageOpportunities(
           kalshiPrice
         );
         
-        // Only include opportunities with meaningful spreads (> 1%)
-        if (Math.abs(spreadPercentage) > 1) {
+        // Only include opportunities with meaningful spreads (> 0.5% after fees)
+        // Lower threshold to catch more opportunities
+        if (Math.abs(spreadPercentage) > 0.5) {
           opportunities.push({
             id: `${polyMarket.id}-${kalshiMarket.event_ticker}`,
             event: polyMarket.question,

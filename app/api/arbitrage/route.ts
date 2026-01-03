@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchMarkets } from '@/lib/polymarket-api';
-import { fetchKalshiMarkets } from '@/lib/kalshi-api';
+import { fetchKalshiMarkets, getKalshiPrice } from '@/lib/kalshi-api';
 import { findArbitrageOpportunities } from '@/lib/arbitrage-matcher';
 import { ArbitrageStats } from '@/types/arbitrage';
 
@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
     // Fetch markets from both platforms
+    console.log('🔄 Starting arbitrage scan...');
     const [polyMarkets, kalshiData] = await Promise.all([
       fetchMarkets(limit),
       fetchKalshiMarkets(limit),
@@ -21,12 +22,22 @@ export async function GET(request: Request) {
     
     // Log for debugging
     console.log(`📊 Arbitrage check: ${polyMarkets.markets.length} Polymarket markets, ${kalshiData.markets.length} Kalshi markets`);
+    
+    // Log sample markets for debugging
+    if (polyMarkets.markets.length > 0) {
+      console.log(`📋 Sample Polymarket: "${polyMarkets.markets[0].question}" (${polyMarkets.markets[0].yesPrice}%)`);
+    }
+    if (kalshiData.markets.length > 0) {
+      console.log(`📋 Sample Kalshi: "${kalshiData.markets[0].title}" (${getKalshiPrice(kalshiData.markets[0])}%)`);
+    }
 
     // Find arbitrage opportunities
+    console.log('🔍 Matching markets for arbitrage...');
     const allOpportunities = findArbitrageOpportunities(
       polyMarkets.markets,
       kalshiData.markets
     );
+    console.log(`✅ Found ${allOpportunities.length} potential arbitrage opportunities`);
 
     // Filter by category if specified
     let opportunities = allOpportunities;

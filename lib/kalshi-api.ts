@@ -49,8 +49,8 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     
     // Kalshi API endpoint
     // Based on docs: https://docs.kalshi.com/getting_started/quick_start_websockets
-    // REST API base URL (adjust if different)
-    const baseUrl = process.env.KALSHI_API_URL || 'https://trading-api.kalshi.com/trade-api/v2';
+    // REST API base URL - try elections API first (matches WebSocket pattern)
+    const baseUrl = process.env.KALSHI_API_URL || 'https://api.elections.kalshi.com/trade-api/v2';
     const path = '/events';
     const queryParams = new URLSearchParams({ limit: limit.toString() });
     const fullUrl = `${baseUrl}${path}?${queryParams.toString()}`;
@@ -89,20 +89,23 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     
     const data = await response.json();
     console.log('📦 Kalshi API response structure:', Object.keys(data));
+    console.log('📦 Kalshi API response sample:', JSON.stringify(data).substring(0, 500));
     
     // Transform Kalshi API response to our format
     // Kalshi API may return: { events: [...] } or { data: { events: [...] } } or direct array
-    const events = data.events || data.data?.events || (Array.isArray(data) ? data : []);
+    const events = data.events || data.data?.events || data.data?.markets || (Array.isArray(data) ? data : []);
+    console.log(`📊 Found ${events.length} events in Kalshi response`);
     
-    const markets: KalshiMarket[] = events.map((item: any) => {
+    const markets: KalshiMarket[] = events.flatMap((item: any) => {
       // Handle different possible response structures
-      const market = item.market || item;
+      // Kalshi might return events with nested markets
+      const eventMarkets = item.markets || [item];
       
-      return {
-        event_ticker: market.event_ticker || market.ticker || market.id || '',
-        title: market.title || market.question || market.event_title || '',
-        subtitle: market.subtitle || market.description || '',
-        category: market.category || market.topic || market.series_ticker || 'other',
+      return eventMarkets.map((market: any) => ({
+        event_ticker: market.event_ticker || market.ticker || market.id || item.event_ticker || '',
+        title: market.title || market.question || market.event_title || item.title || '',
+        subtitle: market.subtitle || market.description || item.subtitle || '',
+        category: market.category || market.topic || market.series_ticker || item.category || 'other',
         yes_bid: market.yes_bid !== undefined ? market.yes_bid : undefined,
         yes_ask: market.yes_ask !== undefined ? market.yes_ask : undefined,
         no_bid: market.no_bid !== undefined ? market.no_bid : undefined,
@@ -115,7 +118,7 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
         url: market.url || (market.event_ticker 
           ? `https://kalshi.com/markets/${market.event_ticker}` 
           : undefined),
-      };
+      }));
     }).filter((m: KalshiMarket) => m.event_ticker && m.title); // Filter out invalid entries
     
     console.log(`✅ Fetched ${markets.length} markets from Kalshi`);
