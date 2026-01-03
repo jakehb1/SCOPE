@@ -51,7 +51,7 @@ export default function Header() {
             
             {/* Follow on X Button */}
             <a
-              href="https://twitter.com/scope"
+              href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 rounded-lg font-medium bg-primary-grey bg-opacity-20 text-primary-offwhite hover:bg-opacity-30 transition-all duration-200 flex items-center gap-2"
@@ -105,7 +105,7 @@ export default function Header() {
               </Link>
             ))}
             <a
-              href="https://twitter.com/scope"
+              href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
               className="block px-4 py-2 rounded-lg font-medium bg-primary-grey bg-opacity-20 text-primary-offwhite flex items-center gap-2"
