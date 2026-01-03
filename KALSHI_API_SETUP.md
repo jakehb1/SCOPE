@@ -9,24 +9,30 @@ The arbitrage scanner is **fully implemented** but currently shows no opportunit
 - The `fetchKalshiMarkets()` function returns empty data
 - You need to add Kalshi API credentials and endpoints
 
-## Option 1: Kalshi Official API (If Available)
+## Option 1: Kalshi Official API (RSA Signature Authentication)
 
 ### Steps to Enable:
 
-1. **Get Kalshi API Access**
-   - Check if Kalshi offers a public API: https://kalshi.com
-   - Contact Kalshi support for API access
-   - You may need to be a registered user or have a trading account
+1. **Get Kalshi API Credentials**
+   - You need a Key ID and RSA Private Key from Kalshi
+   - These are typically provided when you register for API access
+   - Contact Kalshi support if you need API access
 
 2. **Add API Credentials**
    
    Add to `.env.local`:
    ```bash
-   KALSHI_API_KEY=your_api_key_here
-   KALSHI_API_SECRET=your_api_secret_here
-   # Or if they use different auth:
-   KALSHI_USERNAME=your_username
-   KALSHI_PASSWORD=your_password
+   KALSHI_KEY_ID=your_key_id_here
+   KALSHI_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+   ...your private key...
+   -----END RSA PRIVATE KEY-----"
+   ```
+   
+   **Important:** Keep the private key in quotes and preserve the line breaks.
+   
+   Optional: Set custom API URL if different:
+   ```bash
+   KALSHI_API_URL=https://trading-api.kalshi.com/trade-api/v2
    ```
 
 3. **Update `lib/kalshi-api.ts`**

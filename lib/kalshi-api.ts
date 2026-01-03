@@ -1,9 +1,10 @@
 /**
  * Kalshi API Client
  * 
- * Note: Kalshi API may require authentication and may not be publicly available.
- * This is a placeholder implementation that can be extended when API access is available.
+ * Fetches market data from Kalshi using RSA signature authentication
  */
+
+import { generateKalshiAuth, parsePrivateKey } from './kalshi-auth';
 
 export interface KalshiMarket {
   event_ticker: string;
@@ -28,44 +29,36 @@ export interface KalshiResponse {
 /**
  * Fetch markets from Kalshi API
  * 
- * SETUP REQUIRED:
- * 1. Get Kalshi API credentials (if available)
- * 2. Add KALSHI_API_KEY to .env.local
- * 3. Update the API endpoint below to match Kalshi's actual API
- * 
- * Note: Kalshi API may require:
- * - API key authentication
- * - Different endpoint structure
- * - Rate limiting considerations
- * 
- * See KALSHI_API_SETUP.md for detailed instructions
+ * Uses RSA signature-based authentication with key ID and private key
  */
 export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiResponse> {
-  const apiKey = process.env.KALSHI_API_KEY;
+  const keyId = process.env.KALSHI_KEY_ID;
+  const privateKeyString = process.env.KALSHI_PRIVATE_KEY;
   
-  // If no API key, return empty (arbitrage won't work but won't break)
-  if (!apiKey) {
-    console.warn('⚠️ KALSHI_API_KEY not set - arbitrage scanner will show no opportunities');
-    console.warn('   See KALSHI_API_SETUP.md for setup instructions');
+  // If no credentials, return empty (arbitrage won't work but won't break)
+  if (!keyId || !privateKeyString) {
+    console.warn('⚠️ Kalshi credentials not set - arbitrage scanner will show no opportunities');
+    console.warn('   Set KALSHI_KEY_ID and KALSHI_PRIVATE_KEY in .env.local');
     return {
       markets: [],
     };
   }
   
   try {
-    // TODO: Replace with actual Kalshi API endpoint
-    // Check Kalshi documentation for the correct endpoint
-    // Example endpoints to try:
-    // - https://api.kalshi.com/trade-api/v2/events
-    // - https://api.kalshi.com/v1/markets
-    // - https://trading-api.kalshi.com/trade-api/v2/events
+    const privateKey = parsePrivateKey(privateKeyString);
     
-    const apiUrl = process.env.KALSHI_API_URL || 'https://api.kalshi.com/trade-api/v2/events';
+    // Kalshi API endpoint
+    const baseUrl = process.env.KALSHI_API_URL || 'https://trading-api.kalshi.com/trade-api/v2';
+    const path = '/events';
+    const fullUrl = `${baseUrl}${path}?limit=${limit}`;
     
-    const response = await fetch(`${apiUrl}?limit=${limit}`, {
+    // Generate authentication headers
+    const authHeaders = generateKalshiAuth('GET', path, '', keyId, privateKey);
+    
+    const response = await fetch(fullUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        ...authHeaders,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
@@ -75,6 +68,12 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Kalshi API error (${response.status}):`, errorText);
+      
+      // If 401, authentication failed
+      if (response.status === 401) {
+        console.error('Kalshi authentication failed - check your credentials');
+      }
+      
       return {
         markets: [],
       };
@@ -83,29 +82,44 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     const data = await response.json();
     
     // Transform Kalshi API response to our format
-    // Adjust this based on Kalshi's actual response structure
-    const markets: KalshiMarket[] = (data.events || data.markets || []).map((item: any) => ({
-      event_ticker: item.event_ticker || item.ticker || item.id,
-      title: item.title || item.question || '',
-      subtitle: item.subtitle || item.description || '',
-      category: item.category || item.topic || 'other',
-      yes_bid: item.yes_bid || item.bid || undefined,
-      yes_ask: item.yes_ask || item.ask || undefined,
-      no_bid: item.no_bid || undefined,
-      no_ask: item.no_ask || undefined,
-      last_price: item.last_price || item.price || item.yes_price || undefined,
-      volume: item.volume || item.trade_volume || undefined,
-      open_interest: item.open_interest || undefined,
-      url: item.url || (item.event_ticker ? `https://kalshi.com/markets/${item.event_ticker}` : undefined),
-    }));
+    // Kalshi API structure may vary - adjust based on actual response
+    const events = data.events || data.data?.events || data || [];
+    
+    const markets: KalshiMarket[] = events.map((item: any) => {
+      // Handle different possible response structures
+      const market = item.market || item;
+      
+      return {
+        event_ticker: market.event_ticker || market.ticker || market.id || '',
+        title: market.title || market.question || market.event_title || '',
+        subtitle: market.subtitle || market.description || '',
+        category: market.category || market.topic || market.series_ticker || 'other',
+        yes_bid: market.yes_bid !== undefined ? market.yes_bid : undefined,
+        yes_ask: market.yes_ask !== undefined ? market.yes_ask : undefined,
+        no_bid: market.no_bid !== undefined ? market.no_bid : undefined,
+        no_ask: market.no_ask !== undefined ? market.no_ask : undefined,
+        last_price: market.last_price !== undefined 
+          ? market.last_price 
+          : (market.yes_price !== undefined ? market.yes_price : undefined),
+        volume: market.volume || market.trade_volume || undefined,
+        open_interest: market.open_interest || undefined,
+        url: market.url || (market.event_ticker 
+          ? `https://kalshi.com/markets/${market.event_ticker}` 
+          : undefined),
+      };
+    }).filter((m: KalshiMarket) => m.event_ticker && m.title); // Filter out invalid entries
     
     console.log(`✅ Fetched ${markets.length} markets from Kalshi`);
     
     return {
       markets: markets.slice(0, limit),
+      cursor: data.cursor || data.next_cursor,
     };
   } catch (error) {
     console.error('Error fetching Kalshi markets:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
     return {
       markets: [],
     };
@@ -130,4 +144,3 @@ export function getKalshiPrice(market: KalshiMarket): number {
   // Default to 50% if no price data
   return 50;
 }
-
