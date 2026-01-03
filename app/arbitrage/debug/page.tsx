@@ -10,6 +10,7 @@ interface DebugInfo {
     hasKeyId: boolean;
     hasPrivateKey: boolean;
     keyIdLength: number;
+    privateKeyLength?: number;
   };
   markets: {
     polymarketCount: number;
