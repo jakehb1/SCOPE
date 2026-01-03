@@ -129,7 +129,16 @@ export async function GET(request: Request) {
         response.debug.analysis.possibleIssues.push('No Polymarket markets fetched');
       }
       if (kalshiData.markets.length === 0) {
-        response.debug.analysis.possibleIssues.push('No Kalshi markets fetched - check API authentication or endpoint');
+        let issueMsg = 'No Kalshi markets fetched';
+        if (kalshiData.error) {
+          issueMsg += ` - Error: ${kalshiData.error.status || 'Unknown'} ${kalshiData.error.message || ''}`;
+        } else {
+          issueMsg += ' - check API authentication or endpoint';
+        }
+        response.debug.analysis.possibleIssues.push(issueMsg);
+      }
+      if (kalshiData.error) {
+        response.debug.analysis.possibleIssues.push(`Kalshi API error: ${kalshiData.error.status || 'Unknown'} - ${kalshiData.error.message || 'No details'}`);
       }
       if (polyMarkets.markets.length > 0 && kalshiData.markets.length > 0 && opportunities.length === 0) {
         response.debug.analysis.possibleIssues.push('Markets fetched but no matches found - markets may not overlap or matching threshold too strict');
