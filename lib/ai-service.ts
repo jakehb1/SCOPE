@@ -144,21 +144,8 @@ function buildPrompt(request: AIContextRequest): string {
     prompt += `This means the market currently prices a ${currentPrice.toFixed(1)}% probability of YES.\n`;
   }
   
-  // Add web research instructions
-  if (searchQuery) {
-    prompt += `\n=== WEB RESEARCH REQUIRED ===\n`;
-    prompt += `You MUST search the web for real-time information about this market.\n`;
-    prompt += `Search query: "${searchQuery}"\n\n`;
-    prompt += `Search for:\n`;
-    prompt += `- Recent news articles about the topic\n`;
-    prompt += `- Expert opinions and analysis\n`;
-    prompt += `- Relevant data, statistics, and trends\n`;
-    prompt += `- Current events that might affect the outcome\n`;
-    prompt += `- Market sentiment and public opinion\n\n`;
-    prompt += `CRITICAL: After searching, use the real-time information you find to form your hypothesis. `;
-    prompt += `Analyze the data, news, and trends to determine if the current market price (${currentPrice?.toFixed(1) || 'N/A'}%) is accurate, too high, or too low. `;
-    prompt += `Cite specific sources and data points from your search results.\n\n`;
-  } else if (webResearch && webResearch.length > 0) {
+  // Add web research results if available
+  if (webResearch && webResearch.length > 0) {
     prompt += `\n=== RECENT WEB RESEARCH ===\n`;
     prompt += `I've gathered ${webResearch.length} recent information sources:\n\n`;
     
@@ -180,20 +167,27 @@ function buildPrompt(request: AIContextRequest): string {
   prompt += `{\n`;
   prompt += `  "summary": "A 2-3 sentence summary explaining what this market is about and why it matters",\n`;
   prompt += `  "keyDates": ["List of important dates related to this market"],\n`;
-  prompt += `  "keyFactors": ["List of 3-5 key factors that could influence the outcome, based on web research"],\n`;
-  prompt += `  "bettingHypothesis": "A DATA-DRIVEN hypothesis about whether this is a good bet. You MUST search the web first, then: Compare the current price (${currentPrice?.toFixed(1) || 'N/A'}%) to what your research suggests. Is it too high or too low? Cite specific data, news, or trends you found. Be specific about what the research indicates.",\n`;
-  prompt += `  "confidence": "high" | "medium" | "low" - Your confidence based on the quality and quantity of research data found,\n`;
-  prompt += `  "recommendation": "BUY YES" | "BUY NO" | "AVOID" | "MONITOR" - Your betting recommendation based on research,\n`;
-  prompt += `  "relatedLinks": [{"title": "Link title", "url": "https://..."}] - Include links to sources you found in your research\n`;
+  prompt += `  "keyFactors": ["List of 3-5 key factors that could influence the outcome, based on the web research provided above"],\n`;
+  if (webResearch && webResearch.length > 0) {
+    prompt += `  "bettingHypothesis": "A DATA-DRIVEN hypothesis about whether this is a good bet. Use the web research provided above. Compare the current price (${currentPrice?.toFixed(1) || 'N/A'}%) to what the research suggests. Is it too high or too low? Cite specific sources and data points from the research. Be specific: 'Based on [source name], [data point] suggests the market is [overpriced/underpriced/fair] because...'",\n`;
+  } else {
+    prompt += `  "bettingHypothesis": "A hypothesis about whether this is a good bet. Compare the current price (${currentPrice?.toFixed(1) || 'N/A'}%) to what you know about the topic. Is it too high or too low?",\n`;
+  }
+  prompt += `  "confidence": "high" | "medium" | "low" - Your confidence based on the quality and quantity of research data available,\n`;
+  prompt += `  "recommendation": "BUY YES" | "BUY NO" | "AVOID" | "MONITOR" - Your betting recommendation,\n`;
+  prompt += `  "relatedLinks": [{"title": "Link title", "url": "https://..."}] - Include links to sources from the research above\n`;
   prompt += `}\n\n`;
-  prompt += `CRITICAL REQUIREMENTS:\n`;
-  prompt += `1. You MUST search the web using the search query provided above\n`;
-  prompt += `2. Gather at least 3-5 recent sources (news articles, expert opinions, data)\n`;
-  prompt += `3. Your "bettingHypothesis" MUST be based on the real-time data you find\n`;
-  prompt += `4. Compare the market price to what the research suggests\n`;
-  prompt += `5. Cite specific sources and data points in your hypothesis\n`;
-  prompt += `6. Be specific: "Based on [source], [data point] suggests the market is [overpriced/underpriced/fair] because..."\n`;
-  prompt += `7. Don't just provide general information - form a specific, data-driven opinion\n`;
+  
+  if (webResearch && webResearch.length > 0) {
+    prompt += `CRITICAL REQUIREMENTS:\n`;
+    prompt += `1. Your "bettingHypothesis" MUST be based on the real-time web research provided above\n`;
+    prompt += `2. Compare the market price (${currentPrice?.toFixed(1) || 'N/A'}%) to what the research suggests\n`;
+    prompt += `3. Cite specific sources and data points from the research in your hypothesis\n`;
+    prompt += `4. Be specific: "Based on [source name], [data point] suggests the market is [overpriced/underpriced/fair] because..."\n`;
+    prompt += `5. Don't just provide general information - form a specific, data-driven opinion based on the research\n`;
+  } else {
+    prompt += `Note: No web research was available. Base your analysis on general knowledge and market data.\n`;
+  }
   
   return prompt;
 }

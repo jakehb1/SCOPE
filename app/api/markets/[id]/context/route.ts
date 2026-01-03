@@ -36,15 +36,20 @@ export async function GET(
       );
     }
 
-    // Generate AI context with web research instructions
-    // The AI will search the web for real-time information
+    // Research the market using web search for real-time data
+    const researchResults = await researchMarket(
+      market.question,
+      market.category,
+      5
+    );
+    
+    // Generate AI context with actual web research results
     const aiContext = await generateMarketContext({
       question: market.question,
       category: market.category,
       endDate: market.endDate,
       currentPrice: market.yesPrice,
-      // Pass search query for AI to use
-      searchQuery: `${market.question} ${market.category ? market.category : ''} latest news updates`,
+      webResearch: researchResults, // Pass actual search results
     });
 
     // Build full context object

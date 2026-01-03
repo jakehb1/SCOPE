@@ -5,16 +5,19 @@ interface PillButtonProps {
   active?: boolean;
   onClick: () => void;
   variant?: 'default' | 'subtle';
+  disabled?: boolean;
 }
 
-export default function PillButton({ label, active = false, onClick, variant = 'default' }: PillButtonProps) {
+export default function PillButton({ label, active = false, onClick, variant = 'default', disabled = false }: PillButtonProps) {
   if (variant === 'subtle') {
     return (
       <button
         onClick={onClick}
+        disabled={disabled}
         className={`
           px-4 py-2 rounded-full font-medium text-sm
           transition-all duration-200
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${
             active
               ? 'bg-primary-black text-primary-offwhite shadow-sm'
@@ -30,9 +33,11 @@ export default function PillButton({ label, active = false, onClick, variant = '
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`
         px-5 py-2.5 rounded-full font-medium text-sm
         transition-all duration-200
+        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${
           active
             ? 'bg-primary-black text-primary-offwhite shadow-md'
