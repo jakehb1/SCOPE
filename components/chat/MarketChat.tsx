@@ -1,24 +1,110 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ChatMessage } from '@/lib/ai-chat';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ElevatedCard from '@/components/shared/ElevatedCard';
 
 export default function MarketChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your prediction market trading advisor. I can help you analyze markets, identify value bets, manage risk, and make informed betting decisions. What would you like help with?",
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const searchParams = useSearchParams();
+  const marketQuestion = searchParams.get('market');
+  const marketId = searchParams.get('marketId');
+  const yesPrice = searchParams.get('yesPrice');
+  const volume = searchParams.get('volume');
+  
+  // Initialize with market context if provided
+  const getInitialMessages = (): ChatMessage[] => {
+    if (marketQuestion) {
+      return [
+        {
+          role: 'assistant',
+          content: "Hi! I'm your prediction market trading advisor. I can help you analyze markets, identify value bets, manage risk, and make informed betting decisions. What would you like help with?",
+          timestamp: new Date().toISOString(),
+        },
+        {
+          role: 'user',
+          content: `Tell me about this market: ${marketQuestion}${yesPrice ? ` (Current YES price: ${yesPrice}%)` : ''}${volume ? ` (Volume: $${parseFloat(volume).toLocaleString()})` : ''}`,
+          timestamp: new Date().toISOString(),
+        },
+      ];
+    }
+    return [
+      {
+        role: 'assistant',
+        content: "Hi! I'm your prediction market trading advisor. I can help you analyze markets, identify value bets, manage risk, and make informed betting decisions. What would you like help with?",
+        timestamp: new Date().toISOString(),
+      },
+    ];
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages());
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [userBudget, setUserBudget] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('opus');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Auto-send initial message if market is provided
+  useEffect(() => {
+    if (marketQuestion && messages.length === 2 && !loading) {
+      // Small delay to ensure component is mounted
+      const timer = setTimeout(() => {
+        handleAutoSend();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [marketQuestion]); // Only run when marketQuestion changes
+  
+  const handleAutoSend = async () => {
+    if (messages.length !== 2 || loading) return; // Only auto-send if we have the initial user message
+    
+    const userMessage = messages[1];
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          conversationHistory: messages,
+          includeMarkets: true,
+          marketLimit: 50,
+          userBudget: userBudget ? parseFloat(userBudget) : undefined,
+        }),
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.message,
+        timestamp: data.timestamp,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -103,14 +103,23 @@ export default function MarketCard({ market, onViewContext }: MarketCardProps) {
         <div className="text-xs text-gray-600">volume</div>
       </div>
 
-      {/* Action Button - Only get context button, card itself is clickable */}
+      {/* Action Buttons */}
       {onViewContext && (
-        <button
-          onClick={handleContextClick}
-          className="bg-primary-black text-primary-offwhite px-4 py-2 rounded-xl font-medium hover:bg-opacity-90 transition-all mt-auto shadow-sm hover:shadow-md"
-        >
-          get context
-        </button>
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={handleContextClick}
+            className="flex-1 bg-primary-black text-primary-offwhite px-4 py-2 rounded-xl font-medium hover:bg-opacity-90 transition-all shadow-sm hover:shadow-md"
+          >
+            get context
+          </button>
+          <Link
+            href={`/chat?market=${encodeURIComponent(market.question)}&marketId=${encodeURIComponent(market.id)}&yesPrice=${market.yesPrice || 50}&volume=${market.volume || 0}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 bg-primary-grey text-primary-offwhite px-4 py-2 rounded-xl font-medium hover:bg-opacity-90 transition-all shadow-sm hover:shadow-md text-center"
+          >
+            Ask AI
+          </Link>
+        </div>
       )}
     </Link>
   );

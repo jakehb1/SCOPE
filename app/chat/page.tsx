@@ -1,11 +1,20 @@
-import MarketChat from '@/components/chat/MarketChat';
+'use client';
 
-export const metadata = {
-  title: 'Trading Advisor Chat | scope',
-  description: 'Get AI-powered betting advice for prediction markets',
-};
+import { Suspense } from 'react';
+import MarketChat from '@/components/chat/MarketChat';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 export default function ChatPage() {
-  return <MarketChat />;
+  return (
+    <Suspense fallback={
+      <div className="section-container py-8">
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    }>
+      <MarketChat />
+    </Suspense>
+  );
 }
 
