@@ -48,12 +48,18 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     const privateKey = parsePrivateKey(privateKeyString);
     
     // Kalshi API endpoint
+    // Based on docs: https://docs.kalshi.com/getting_started/quick_start_websockets
+    // REST API base URL (adjust if different)
     const baseUrl = process.env.KALSHI_API_URL || 'https://trading-api.kalshi.com/trade-api/v2';
     const path = '/events';
-    const fullUrl = `${baseUrl}${path}?limit=${limit}`;
+    const queryParams = new URLSearchParams({ limit: limit.toString() });
+    const fullUrl = `${baseUrl}${path}?${queryParams.toString()}`;
     
     // Generate authentication headers
+    // Path for signing should NOT include query string
     const authHeaders = generateKalshiAuth('GET', path, '', keyId, privateKey);
+    
+    console.log(`🔐 Kalshi auth headers generated for path: ${path}`);
     
     const response = await fetch(fullUrl, {
       method: 'GET',
@@ -67,11 +73,13 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Kalshi API error (${response.status}):`, errorText);
+      console.error(`❌ Kalshi API error (${response.status}):`, errorText);
       
       // If 401, authentication failed
       if (response.status === 401) {
-        console.error('Kalshi authentication failed - check your credentials');
+        console.error('🔒 Kalshi authentication failed - check your credentials and signature format');
+        console.error('   Verify: KALSHI_KEY_ID and KALSHI_PRIVATE_KEY are correct');
+        console.error('   Check: Signature uses RSA-PSS with SHA-256');
       }
       
       return {
@@ -80,10 +88,11 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     }
     
     const data = await response.json();
+    console.log('📦 Kalshi API response structure:', Object.keys(data));
     
     // Transform Kalshi API response to our format
-    // Kalshi API structure may vary - adjust based on actual response
-    const events = data.events || data.data?.events || data || [];
+    // Kalshi API may return: { events: [...] } or { data: { events: [...] } } or direct array
+    const events = data.events || data.data?.events || (Array.isArray(data) ? data : []);
     
     const markets: KalshiMarket[] = events.map((item: any) => {
       // Handle different possible response structures
