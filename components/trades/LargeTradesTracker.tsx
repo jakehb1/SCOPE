@@ -14,12 +14,23 @@ const TRADE_TYPE_FILTERS: { value: TradeTypeFilter; label: string }[] = [
   { value: 'sells', label: 'Sells Only' },
 ];
 
+type TimeFilter = 'all' | '1h' | '24h' | '7d' | '30d';
+
+const TIME_FILTERS: { value: TimeFilter; label: string; hours: number }[] = [
+  { value: 'all', label: 'All Time', hours: 0 },
+  { value: '1h', label: 'Last Hour', hours: 1 },
+  { value: '24h', label: 'Last 24 Hours', hours: 24 },
+  { value: '7d', label: 'Last 7 Days', hours: 168 },
+  { value: '30d', label: 'Last 30 Days', hours: 720 },
+];
+
 export default function LargeTradesTracker() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minAmount, setMinAmount] = useState<string>('10000');
   const [tradeTypeFilter, setTradeTypeFilter] = useState<TradeTypeFilter>('all');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Fetch trades
@@ -75,8 +86,20 @@ export default function LargeTradesTracker() {
 
   // Filter trades
   const filteredTrades = trades.filter(trade => {
+    // Filter by trade type
     if (tradeTypeFilter === 'buys' && trade.side !== 'buy') return false;
     if (tradeTypeFilter === 'sells' && trade.side !== 'sell') return false;
+    
+    // Filter by time
+    if (timeFilter !== 'all') {
+      const timeFilterConfig = TIME_FILTERS.find(f => f.value === timeFilter);
+      if (timeFilterConfig && timeFilterConfig.hours > 0) {
+        const tradeTime = new Date(trade.time).getTime();
+        const cutoffTime = Date.now() - (timeFilterConfig.hours * 60 * 60 * 1000);
+        if (tradeTime < cutoffTime) return false;
+      }
+    }
+    
     return true;
   });
 
@@ -139,19 +162,37 @@ export default function LargeTradesTracker() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-primary-black mb-2">
-                Trade Type
-              </label>
-              <div className="flex gap-2">
-                {TRADE_TYPE_FILTERS.map((filter) => (
-                  <PillButton
-                    key={filter.value}
-                    label={filter.label}
-                    onClick={() => setTradeTypeFilter(filter.value)}
-                    active={tradeTypeFilter === filter.value}
-                  />
-                ))}
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-primary-black mb-2">
+                  Trade Type
+                </label>
+                <div className="flex gap-2">
+                  {TRADE_TYPE_FILTERS.map((filter) => (
+                    <PillButton
+                      key={filter.value}
+                      label={filter.label}
+                      onClick={() => setTradeTypeFilter(filter.value)}
+                      active={tradeTypeFilter === filter.value}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-primary-black mb-2">
+                  Time Period
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {TIME_FILTERS.map((filter) => (
+                    <PillButton
+                      key={filter.value}
+                      label={filter.label}
+                      onClick={() => setTimeFilter(filter.value)}
+                      active={timeFilter === filter.value}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
