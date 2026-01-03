@@ -76,10 +76,26 @@ export async function GET(request: Request) {
       lastUpdated: new Date().toISOString(),
     };
 
-    return NextResponse.json({
+    // Include debug info in response if no opportunities found
+    const response: any = {
       opportunities: opportunities.slice(0, limit),
       stats,
-    }, {
+    };
+
+    // Add debug info if no opportunities (helps diagnose issues)
+    if (opportunities.length === 0) {
+      response.debug = {
+        polymarketCount: polyMarkets.markets.length,
+        kalshiCount: kalshiData.markets.length,
+        hasPolymarketMarkets: polyMarkets.markets.length > 0,
+        hasKalshiMarkets: kalshiData.markets.length > 0,
+        message: kalshiData.markets.length === 0 
+          ? 'No Kalshi markets fetched - check API authentication'
+          : 'Markets fetched but no matches found - markets may not overlap',
+      };
+    }
+
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
       },
