@@ -47,15 +47,17 @@ export default function MarketChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
   // Auto-send initial message if market is provided
+  const hasAutoSent = useRef(false);
   useEffect(() => {
-    if (marketQuestion && messages.length === 2 && !loading) {
+    if (marketQuestion && messages.length === 2 && !loading && !hasAutoSent.current) {
+      hasAutoSent.current = true;
       // Small delay to ensure component is mounted
       const timer = setTimeout(() => {
         handleAutoSend();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [marketQuestion]); // Only run when marketQuestion changes
+  }, [marketQuestion, messages.length, loading]); // Only run when these change
   
   const handleAutoSend = async () => {
     if (messages.length !== 2 || loading) return; // Only auto-send if we have the initial user message
