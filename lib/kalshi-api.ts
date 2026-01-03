@@ -24,6 +24,10 @@ export interface KalshiMarket {
 export interface KalshiResponse {
   markets: KalshiMarket[];
   cursor?: string;
+  error?: {
+    status?: number;
+    message?: string;
+  };
 }
 
 /**
