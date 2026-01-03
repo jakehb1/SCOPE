@@ -20,7 +20,7 @@ export interface LargeTradesResponse {
  * may need to be adjusted based on Polymarket's API documentation.
  */
 export async function fetchLargeTrades(
-  minAmount: number = 1000,
+  minAmount: number = 10000,
   limit: number = 50
 ): Promise<LargeTradesResponse> {
   try {

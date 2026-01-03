@@ -18,7 +18,7 @@ export default function LargeTradesTracker() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [minAmount, setMinAmount] = useState<string>('1000');
+  const [minAmount, setMinAmount] = useState<string>('10000');
   const [tradeTypeFilter, setTradeTypeFilter] = useState<TradeTypeFilter>('all');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
@@ -26,7 +26,7 @@ export default function LargeTradesTracker() {
   const fetchTrades = async () => {
     try {
       setError(null);
-      const min = parseFloat(minAmount) || 1000;
+      const min = parseFloat(minAmount) || 10000;
       
       const response = await fetch(`/api/trades?minAmount=${min}&limit=100`);
       
@@ -117,7 +117,7 @@ export default function LargeTradesTracker() {
                 type="number"
                 value={minAmount}
                 onChange={(e) => setMinAmount(e.target.value)}
-                placeholder="1000"
+                placeholder="10000"
                 className="w-full md:w-48"
               />
             </div>

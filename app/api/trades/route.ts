@@ -7,7 +7,7 @@ import { fetchLargeTrades } from '@/lib/polymarket-trades';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const minAmount = parseFloat(searchParams.get('minAmount') || '1000');
+    const minAmount = parseFloat(searchParams.get('minAmount') || '10000');
     const limit = parseInt(searchParams.get('limit') || '50', 10);
 
     const trades = await fetchLargeTrades(minAmount, limit);
