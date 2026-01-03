@@ -122,17 +122,30 @@ Guidelines:
     prompt += `\nCurrent Market Context:\n`;
     prompt += `Here are ${context.markets.length} active markets you can reference:\n\n`;
     
-    context.markets.slice(0, 20).forEach((market, index) => {
+    // Prioritize sports markets if user is asking about sports
+    const sortedMarkets = [...context.markets].sort((a, b) => {
+      // Put sports markets first if there are any
+      if (a.category === 'sports' && b.category !== 'sports') return -1;
+      if (b.category === 'sports' && a.category !== 'sports') return 1;
+      // Then by volume
+      return b.volume - a.volume;
+    });
+    
+    sortedMarkets.slice(0, 30).forEach((market, index) => {
       prompt += `${index + 1}. ${market.question}\n`;
       prompt += `   - Current YES price: ${market.yesPrice?.toFixed(1) || 'N/A'}%\n`;
       prompt += `   - Volume: $${formatCurrency(market.volume)}\n`;
       prompt += `   - Liquidity: $${formatCurrency(market.liquidity)}\n`;
       prompt += `   - Resolves: ${new Date(market.endDate).toLocaleDateString()}\n`;
       prompt += `   - Category: ${market.category || 'other'}\n`;
+      if (market.category === 'sports') {
+        prompt += `   - ⚽ SPORTS MARKET\n`;
+      }
       prompt += `   - Market ID: ${market.id}\n\n`;
     });
     
-    prompt += `When users ask about specific markets, reference the data above. `;
+    prompt += `When users ask about specific markets (like NFL games, sports events, etc.), reference the data above. `;
+    prompt += `Pay special attention to markets marked as SPORTS if the user is asking about sports. `;
     prompt += `You can suggest markets by number or by describing them.\n\n`;
   }
 

@@ -20,7 +20,31 @@ function inferCategory(market: any): MarketCategory {
   if (allText.includes('election') || allText.includes('president') || allText.includes('senate') || allText.includes('congress') || allText.includes('trump') || allText.includes('biden')) {
     return 'politics';
   }
-  if (allText.includes('nfl') || allText.includes('nba') || allText.includes('nhl') || allText.includes('mlb') || allText.includes('ncaab') || allText.includes('ncaa') || allText.includes('soccer') || allText.includes('football') || allText.includes('basketball') || allText.includes('hockey') || allText.includes('baseball')) {
+  // Sports detection - be more specific to avoid false positives
+  // Check for sports leagues/terms as whole words or with word boundaries
+  const sportsKeywords = [
+    'nfl', 'nba', 'nhl', 'mlb', 'ncaa', 'ncaab', 'ncaaf', 'cfb', 'cbb',
+    'super bowl', 'world series', 'stanley cup', 'nba finals',
+    'nfl game', 'nfl week', 'nfl season', 'nfl playoff',
+    'nba game', 'nba playoff', 'nba finals',
+    'nhl game', 'nhl playoff', 'stanley cup',
+    'mlb game', 'mlb playoff', 'world series',
+    'college football', 'college basketball', 'march madness',
+    'soccer', 'premier league', 'champions league', 'world cup',
+    'football game', 'basketball game', 'hockey game', 'baseball game',
+    'nfl team', 'nba team', 'nhl team', 'mlb team',
+    'quarterback', 'touchdown', 'field goal', 'home run', 'three pointer',
+    'nfl player', 'nba player', 'nhl player', 'mlb player',
+  ];
+  
+  // Check if any sports keyword appears (but not as part of another word like "inflation")
+  const hasSportsKeyword = sportsKeywords.some(keyword => {
+    // Use word boundaries or check if it's a standalone term
+    const regex = new RegExp(`\\b${keyword.replace(/\s+/g, '\\s+')}\\b`, 'i');
+    return regex.test(allText);
+  });
+  
+  if (hasSportsKeyword) {
     return 'sports';
   }
   if (allText.includes('bitcoin') || allText.includes('btc') || allText.includes('ethereum') || allText.includes('eth') || allText.includes('crypto') || allText.includes('blockchain') || allText.includes('solana') || allText.includes('sol')) {
