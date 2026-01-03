@@ -62,11 +62,17 @@ export default function WhaleTracker() {
   };
 
   const getProfileUrl = (entry: LeaderboardEntry) => {
-    // Use username if available, otherwise use wallet address
+    // Polymarket profile URLs use the wallet address, not username
+    // Format: https://polymarket.com/profile/{walletAddress}
+    // Username can be used but wallet is more reliable
+    if (entry.proxyWallet) {
+      return `https://polymarket.com/profile/${entry.proxyWallet}`;
+    }
+    // Fallback to username if wallet is somehow missing
     if (entry.userName) {
       return `https://polymarket.com/profile/${entry.userName}`;
     }
-    return `https://polymarket.com/profile/${entry.proxyWallet}`;
+    return 'https://polymarket.com';
   };
 
   const categories: { value: LeaderboardCategory; label: string }[] = [
@@ -214,13 +220,16 @@ export default function WhaleTracker() {
                           )}
                           <div>
                             <div className="text-sm font-medium text-primary-black hover:text-primary-grey transition-colors">
-                              {entry.userName || entry.proxyWallet.slice(0, 8) + '...'}
+                              {entry.userName || `${entry.proxyWallet.slice(0, 6)}...${entry.proxyWallet.slice(-4)}`}
                               {entry.verifiedBadge && (
-                                <span className="ml-2 text-primary-grey">✓</span>
+                                <span className="ml-2 text-primary-grey" title="Verified">✓</span>
                               )}
                             </div>
                             {entry.xUsername && (
                               <div className="text-xs text-gray-500">@{entry.xUsername}</div>
+                            )}
+                            {!entry.userName && (
+                              <div className="text-xs text-gray-400 font-mono">{entry.proxyWallet.slice(0, 10)}...</div>
                             )}
                           </div>
                         </div>

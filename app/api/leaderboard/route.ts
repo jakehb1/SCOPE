@@ -20,6 +20,9 @@ export async function GET(request: Request) {
 
     const leaderboard = await fetchLeaderboard(category, timePeriod, orderBy, limit, offset);
 
+    // Log for debugging (remove in production if needed)
+    console.log(`📊 Leaderboard fetched: ${leaderboard.entries.length} entries for ${category}/${timePeriod}/${orderBy}`);
+
     return NextResponse.json(leaderboard, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',

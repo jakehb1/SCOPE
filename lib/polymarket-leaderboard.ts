@@ -47,17 +47,29 @@ export async function fetchLeaderboard(
 
     const data = await response.json();
 
+    // Validate response is an array
+    if (!Array.isArray(data)) {
+      console.error('Invalid leaderboard API response format:', data);
+      return {
+        entries: [],
+        total: 0,
+      };
+    }
+
     // Transform API response to our interface
-    const entries: LeaderboardEntry[] = (data || []).map((entry: any) => ({
-      rank: parseInt(entry.rank || '0', 10),
-      proxyWallet: entry.proxyWallet || entry.proxy_wallet || '',
-      userName: entry.userName || entry.user_name || null,
-      vol: parseFloat(entry.vol || entry.volume || 0),
-      pnl: parseFloat(entry.pnl || entry.profit_loss || 0),
-      profileImage: entry.profileImage || entry.profile_image || undefined,
-      xUsername: entry.xUsername || entry.x_username || entry.twitter_username || undefined,
-      verifiedBadge: entry.verifiedBadge || entry.verified_badge || false,
-    }));
+    const entries: LeaderboardEntry[] = data
+      .filter((entry: any) => entry && entry.proxyWallet) // Filter out invalid entries
+      .map((entry: any) => ({
+        rank: parseInt(entry.rank || '0', 10),
+        proxyWallet: entry.proxyWallet || entry.proxy_wallet || '',
+        userName: entry.userName || entry.user_name || null,
+        vol: parseFloat(entry.vol || entry.volume || '0') || 0,
+        pnl: parseFloat(entry.pnl || entry.profit_loss || '0') || 0,
+        profileImage: entry.profileImage || entry.profile_image || undefined,
+        xUsername: entry.xUsername || entry.x_username || entry.twitter_username || undefined,
+        verifiedBadge: entry.verifiedBadge || entry.verified_badge || false,
+      }))
+      .filter((entry: LeaderboardEntry) => entry.proxyWallet.length > 0); // Ensure we have a valid wallet
 
     return {
       entries,
