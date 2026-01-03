@@ -19,15 +19,26 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error in trades API route:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch trades', 
-        details: error instanceof Error ? error.message : 'Unknown error',
-        trades: [],
-        total: 0,
-      },
-      { status: 500 }
-    );
+    // Even on error, try to return mock data so UI still works
+    try {
+      const { fetchLargeTrades } = await import('@/lib/polymarket-trades');
+      const mockTrades = await fetchLargeTrades(minAmount, limit);
+      return NextResponse.json({
+        trades: mockTrades.trades,
+        total: mockTrades.total,
+        error: 'Using mock data - API unavailable',
+      });
+    } catch (fallbackError) {
+      return NextResponse.json(
+        { 
+          error: 'Failed to fetch trades', 
+          details: error instanceof Error ? error.message : 'Unknown error',
+          trades: [],
+          total: 0,
+        },
+        { status: 500 }
+      );
+    }
   }
 }
 

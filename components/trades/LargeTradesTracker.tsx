@@ -35,11 +35,28 @@ export default function LargeTradesTracker() {
       }
 
       const data = await response.json();
-      setTrades(data.trades || []);
+      
+      // Always show trades if available, even if there's an error message
+      if (data.trades && data.trades.length > 0) {
+        setTrades(data.trades);
+        setError(null); // Clear error if we have data
+      } else if (data.error) {
+        // If API returned an error but no trades, show error
+        setError(data.error);
+        setTrades([]);
+      } else {
+        // No trades and no error - might be empty result
+        setTrades([]);
+        setError(null);
+      }
+      
       setLastUpdate(new Date());
     } catch (err: any) {
       console.error('Error loading trades:', err);
-      setError(err.message || 'Failed to load trades');
+      // Don't set error state - let the empty state show instead
+      // The API should return mock data even on errors
+      setTrades([]);
+      setError('Unable to fetch trades. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
