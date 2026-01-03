@@ -134,10 +134,26 @@ export default function LargeTradesTracker() {
     return date.toLocaleDateString();
   };
 
-  const getMarketUrl = (marketId: string): string => {
-    if (!marketId) return '#';
-    // Try to construct Polymarket URL
-    return `https://polymarket.com/market/${marketId}`;
+  const getTradeUrl = (trade: Trade): string => {
+    // If we have transaction hash and market slug, use direct trade link
+    if (trade.transactionHash && trade.marketSlug) {
+      return `https://polymarket.com/market/${trade.marketSlug}/trade/${trade.transactionHash}`;
+    }
+    // If we have transaction hash, try to construct link
+    if (trade.transactionHash) {
+      // Try to get market slug from marketId or use conditionId
+      const marketPath = trade.marketSlug || trade.marketId;
+      if (marketPath) {
+        return `https://polymarket.com/market/${marketPath}/trade/${trade.transactionHash}`;
+      }
+      // Fallback: link to transaction on Polygonscan
+      return `https://polygonscan.com/tx/${trade.transactionHash}`;
+    }
+    // Fallback to market page if we have marketId
+    if (trade.marketId) {
+      return `https://polymarket.com/market/${trade.marketId}`;
+    }
+    return '#';
   };
 
   return (
@@ -295,12 +311,13 @@ export default function LargeTradesTracker() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredTrades.map((trade) => (
                         <tr
-                          key={trade.id}
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => {
-                            const url = getMarketUrl(trade.marketId);
-                            if (url !== '#') window.open(url, '_blank');
-                          }}
+                        key={trade.id}
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          const url = getTradeUrl(trade);
+                          if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+                        }}
+                        title={`View trade on Polymarket${trade.transactionHash ? ` (${trade.transactionHash.substring(0, 8)}...)` : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-black">
                             {formatTime(trade.time)}

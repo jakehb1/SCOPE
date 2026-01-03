@@ -8,6 +8,8 @@ export interface Trade {
   traderAddress?: string;
   market: string;
   marketId: string;
+  marketSlug?: string; // Market slug for URL construction
+  transactionHash?: string; // Transaction hash for direct trade link
   shares: number;
   investment: number;
   price: number;

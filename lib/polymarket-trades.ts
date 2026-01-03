@@ -39,17 +39,79 @@ export async function fetchLargeTrades(
       console.debug('CLOB client error:', clobError);
     }
 
-    // Try Polymarket Data API endpoints
+    // Try CLOB API /data/trades endpoint (recommended for real trades)
+    try {
+      const client = new ClobClient(CLOB_HOST, CHAIN_ID);
+      // CLOB API endpoint for trades
+      const clobTradesUrl = `${CLOB_HOST}/data/trades?limit=${limit}`;
+      console.log(`🔍 Trying CLOB trades endpoint: ${clobTradesUrl}`);
+      
+      const clobResponse = await fetch(clobTradesUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 10 },
+      });
+
+      if (clobResponse.ok) {
+        const clobData = await clobResponse.json();
+        console.log(`📦 CLOB response structure:`, Object.keys(clobData));
+        
+        const rawTrades = Array.isArray(clobData) ? clobData : clobData.trades || clobData.data || [];
+        console.log(`📊 Found ${rawTrades.length} trades from CLOB API`);
+        
+        if (rawTrades.length > 0) {
+          const trades: Trade[] = rawTrades.map((item: any) => {
+            // CLOB API trade structure
+            const usdcSize = parseFloat(item.usdcSize || item.size || '0') || 0;
+            const price = parseFloat(item.price || item.avgPrice || '0') || 0;
+            const shares = parseFloat(item.shares || item.amount || '0') || 0;
+            
+            return {
+              id: item.id || item.transactionHash || item.txHash || `trade_${Date.now()}_${Math.random()}`,
+              trader: item.taker || item.maker || item.user || 'Unknown',
+              traderAddress: item.taker || item.maker || item.userAddress,
+              market: item.marketQuestion || item.question || item.market || 'Unknown Market',
+              marketId: item.conditionId || item.condition_id || item.marketId || '',
+              marketSlug: item.marketSlug || item.slug,
+              transactionHash: item.transactionHash || item.txHash || item.id,
+              shares: shares || (usdcSize && price ? usdcSize / price : 0),
+              investment: usdcSize,
+              price: price > 1 ? price : price * 100,
+              side: (item.side || item.direction || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
+              time: item.timestamp || item.time || item.createdAt || new Date().toISOString(),
+              category: item.category,
+              isInsiderLike: false,
+            };
+          }).filter((trade: Trade) => trade.id && trade.investment >= minAmount);
+
+          if (trades.length > 0) {
+            console.log(`✅ Processed ${trades.length} real trades from CLOB API`);
+            return {
+              trades: trades.slice(0, limit),
+              total: trades.length,
+            };
+          }
+        }
+      } else {
+        const errorText = await clobResponse.text();
+        console.log(`❌ CLOB trades endpoint returned ${clobResponse.status}: ${errorText.substring(0, 200)}`);
+      }
+    } catch (clobError) {
+      console.debug('CLOB trades endpoint error:', clobError);
+    }
+
+    // Fallback: Try Polymarket Data API endpoints
     const params = new URLSearchParams({
       limit: limit.toString(),
     });
 
-    // Try multiple possible endpoints
     const endpoints = [
       { path: `/trades`, params },
       { path: `/fills`, params },
       { path: `/transactions`, params },
-      { path: `/data/trades`, params }, // CLOB data endpoint
     ];
 
     for (const { path, params: endpointParams } of endpoints) {
@@ -88,6 +150,8 @@ export async function fetchLargeTrades(
               traderAddress: item.trader_address || item.wallet_address || item.user_address || item.trader,
               market: item.market_question || item.question || item.market || item.market_title || 'Unknown Market',
               marketId: item.market_id || item.condition_id || item.conditionId || item.condition_id || '',
+              marketSlug: item.market_slug || item.slug,
+              transactionHash: item.transaction_hash || item.tx_hash || item.transactionHash || item.id,
               shares: shares,
               investment: investment,
               price: price > 1 ? price : price * 100, // Convert to percentage if needed
@@ -124,25 +188,23 @@ export async function fetchLargeTrades(
       }
     }
 
-    // If no endpoint works, return mock data for development
-    console.warn('⚠️ Could not fetch trades from Polymarket API - using mock data');
-    console.warn('   This is expected if Polymarket API endpoints are not publicly available');
-    const mockTrades = generateMockTrades(minAmount, limit);
-    console.log(`📊 Generated ${mockTrades.length} mock trades`);
+    // If no endpoint works, we can't return mock data for real transactions
+    // Return empty array instead - user should see that no trades are available
+    console.warn('⚠️ Could not fetch real trades from Polymarket API');
+    console.warn('   All endpoints failed - trades API may require authentication or different endpoint');
     return {
-      trades: mockTrades,
-      total: mockTrades.length,
+      trades: [],
+      total: 0,
     };
   } catch (error) {
     console.error('❌ Error fetching large trades:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message, error.stack);
     }
-    // Return mock data on error so the UI still works
-    const mockTrades = generateMockTrades(minAmount, limit);
+    // Return empty on error - we want real trades only
     return {
-      trades: mockTrades,
-      total: mockTrades.length,
+      trades: [],
+      total: 0,
     };
   }
 }
