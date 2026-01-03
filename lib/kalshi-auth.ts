@@ -42,10 +42,11 @@ export function generateKalshiAuth(
     sign.end();
     
     // Use PSS padding (Kalshi's requirement)
+    // Per Kalshi docs: saltLength should be DIGEST_LENGTH (not MAX_SIGN)
     const signature = sign.sign({
       key: privateKey,
       padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-      saltLength: crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN,
+      saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST, // Changed to match Kalshi docs
     }, 'base64');
     
     return {
