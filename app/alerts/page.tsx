@@ -1,11 +1,11 @@
-import AlertsFeed from '@/components/alerts/AlertsFeed';
+import LargeTradesTracker from '@/components/trades/LargeTradesTracker';
 
 export const metadata = {
-  title: 'New Market Alerts | scope',
-  description: 'Real-time alerts for newly created Polymarket markets',
+  title: 'Large Trades Tracker | scope',
+  description: 'Live tracking of significant purchases on Polymarket',
 };
 
 export default function AlertsPage() {
-  return <AlertsFeed />;
+  return <LargeTradesTracker />;
 }
 
