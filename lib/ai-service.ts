@@ -5,18 +5,30 @@
  * You can also use Anthropic Claude, or other AI providers by modifying this service.
  */
 
+interface ResearchResult {
+  title: string;
+  snippet: string;
+  url: string;
+  relevance: 'high' | 'medium' | 'low';
+}
+
 interface AIContextRequest {
   question: string;
   category?: string;
   endDate?: string;
   description?: string;
   currentPrice?: number;
+  webResearch?: ResearchResult[];
+  searchQuery?: string; // Search query for web research
 }
 
 interface AIContextResponse {
   summary: string;
   keyDates: string[];
   keyFactors: string[];
+  bettingHypothesis?: string;
+  confidence?: 'high' | 'medium' | 'low';
+  recommendation?: 'BUY YES' | 'BUY NO' | 'AVOID' | 'MONITOR';
   relatedLinks?: Array<{ title: string; url: string }>;
 }
 
@@ -50,7 +62,14 @@ export async function generateMarketContext(
         messages: [
           {
             role: 'system',
-            content: 'You are a financial markets analyst specializing in prediction markets. Provide concise, factual, and actionable insights about prediction markets. Focus on key dates, important factors, and relevant context that would help traders make informed decisions.',
+            content: `You are a financial markets analyst specializing in prediction markets. Your job is to:
+1. Gather real-time information from the web about the market topic
+2. Analyze current news, trends, and data
+3. Form a DATA-DRIVEN HYPOTHESIS about whether the market is a good bet
+4. Compare the current market price to what the research suggests
+5. Provide a clear recommendation: BUY YES, BUY NO, AVOID, or MONITOR
+
+You have access to web search capabilities. When analyzing a market, search for recent news, expert opinions, relevant data, and trends. Use this information to form your hypothesis. Be specific and cite sources when possible.`,
           },
           {
             role: 'user',
@@ -83,6 +102,9 @@ export async function generateMarketContext(
       summary: parsed.summary || generateSummary(request),
       keyDates: Array.isArray(parsed.keyDates) ? parsed.keyDates : [],
       keyFactors: Array.isArray(parsed.keyFactors) ? parsed.keyFactors : [],
+      bettingHypothesis: parsed.bettingHypothesis,
+      confidence: parsed.confidence,
+      recommendation: parsed.recommendation,
       relatedLinks: Array.isArray(parsed.relatedLinks) ? parsed.relatedLinks : undefined,
     };
   } catch (error) {
@@ -95,9 +117,9 @@ export async function generateMarketContext(
  * Build the prompt for the AI
  */
 function buildPrompt(request: AIContextRequest): string {
-  const { question, category, endDate, description, currentPrice } = request;
+  const { question, category, endDate, description, currentPrice, webResearch, searchQuery } = request;
   
-  let prompt = `Analyze this prediction market and provide context:\n\n`;
+  let prompt = `Analyze this prediction market and provide a DATA-DRIVEN HYPOTHESIS about whether it's a good bet:\n\n`;
   prompt += `Market Question: ${question}\n`;
   
   if (category) {
@@ -119,16 +141,59 @@ function buildPrompt(request: AIContextRequest): string {
   
   if (currentPrice !== undefined) {
     prompt += `Current Yes Price: ${currentPrice.toFixed(1)}%\n`;
+    prompt += `This means the market currently prices a ${currentPrice.toFixed(1)}% probability of YES.\n`;
+  }
+  
+  // Add web research instructions
+  if (searchQuery) {
+    prompt += `\n=== WEB RESEARCH REQUIRED ===\n`;
+    prompt += `You MUST search the web for real-time information about this market.\n`;
+    prompt += `Search query: "${searchQuery}"\n\n`;
+    prompt += `Search for:\n`;
+    prompt += `- Recent news articles about the topic\n`;
+    prompt += `- Expert opinions and analysis\n`;
+    prompt += `- Relevant data, statistics, and trends\n`;
+    prompt += `- Current events that might affect the outcome\n`;
+    prompt += `- Market sentiment and public opinion\n\n`;
+    prompt += `CRITICAL: After searching, use the real-time information you find to form your hypothesis. `;
+    prompt += `Analyze the data, news, and trends to determine if the current market price (${currentPrice?.toFixed(1) || 'N/A'}%) is accurate, too high, or too low. `;
+    prompt += `Cite specific sources and data points from your search results.\n\n`;
+  } else if (webResearch && webResearch.length > 0) {
+    prompt += `\n=== RECENT WEB RESEARCH ===\n`;
+    prompt += `I've gathered ${webResearch.length} recent information sources:\n\n`;
+    
+    webResearch.forEach((result, index) => {
+      prompt += `${index + 1}. ${result.title}\n`;
+      prompt += `   ${result.snippet}\n`;
+      prompt += `   Source: ${result.url}\n`;
+      prompt += `   Relevance: ${result.relevance}\n\n`;
+    });
+    
+    prompt += `\nCRITICAL: Use this real-time web research to form your hypothesis. `;
+    prompt += `Analyze the data, news, and trends to determine if the current market price (${currentPrice?.toFixed(1) || 'N/A'}%) is accurate, too high, or too low.\n\n`;
+  } else {
+    prompt += `\nIMPORTANT: You should search the web for recent information about this market topic. `;
+    prompt += `Use web search to gather real-time data, news, and expert opinions before forming your hypothesis.\n\n`;
   }
   
   prompt += `\nPlease provide a JSON response with the following structure:\n`;
   prompt += `{\n`;
   prompt += `  "summary": "A 2-3 sentence summary explaining what this market is about and why it matters",\n`;
-  prompt += `  "keyDates": ["List of important dates related to this market (e.g., election dates, earnings reports, event dates)"],\n`;
-  prompt += `  "keyFactors": ["List of 3-5 key factors that could influence the outcome (e.g., economic indicators, political events, market trends)"],\n`;
-  prompt += `  "relatedLinks": [{"title": "Link title", "url": "https://..."}]\n`;
+  prompt += `  "keyDates": ["List of important dates related to this market"],\n`;
+  prompt += `  "keyFactors": ["List of 3-5 key factors that could influence the outcome, based on web research"],\n`;
+  prompt += `  "bettingHypothesis": "A DATA-DRIVEN hypothesis about whether this is a good bet. You MUST search the web first, then: Compare the current price (${currentPrice?.toFixed(1) || 'N/A'}%) to what your research suggests. Is it too high or too low? Cite specific data, news, or trends you found. Be specific about what the research indicates.",\n`;
+  prompt += `  "confidence": "high" | "medium" | "low" - Your confidence based on the quality and quantity of research data found,\n`;
+  prompt += `  "recommendation": "BUY YES" | "BUY NO" | "AVOID" | "MONITOR" - Your betting recommendation based on research,\n`;
+  prompt += `  "relatedLinks": [{"title": "Link title", "url": "https://..."}] - Include links to sources you found in your research\n`;
   prompt += `}\n\n`;
-  prompt += `Be specific and factual. Focus on information that would help a trader understand the market better.`;
+  prompt += `CRITICAL REQUIREMENTS:\n`;
+  prompt += `1. You MUST search the web using the search query provided above\n`;
+  prompt += `2. Gather at least 3-5 recent sources (news articles, expert opinions, data)\n`;
+  prompt += `3. Your "bettingHypothesis" MUST be based on the real-time data you find\n`;
+  prompt += `4. Compare the market price to what the research suggests\n`;
+  prompt += `5. Cite specific sources and data points in your hypothesis\n`;
+  prompt += `6. Be specific: "Based on [source], [data point] suggests the market is [overpriced/underpriced/fair] because..."\n`;
+  prompt += `7. Don't just provide general information - form a specific, data-driven opinion\n`;
   
   return prompt;
 }

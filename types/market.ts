@@ -36,6 +36,9 @@ export interface MarketContext {
   summary: string;
   keyDates: string[];
   keyFactors: string[];
+  bettingHypothesis?: string;
+  confidence?: 'high' | 'medium' | 'low';
+  recommendation?: 'BUY YES' | 'BUY NO' | 'AVOID' | 'MONITOR';
   relatedLinks?: Array<{ title: string; url: string }>;
   generatedAt: string;
 }

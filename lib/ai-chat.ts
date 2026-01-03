@@ -57,6 +57,9 @@ export async function generateChatResponse(
       },
     ];
 
+    // Use gpt-4o if available for better web search capabilities, otherwise gpt-4o-mini
+    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,10 +67,11 @@ export async function generateChatResponse(
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        model: model,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: 0.7,
-        max_tokens: 1500,
+        max_tokens: 2000, // Increased for more detailed research-based responses
+        // Note: The AI is instructed to search the web and use real-time information
       }),
     });
 
@@ -100,21 +104,34 @@ export async function generateChatResponse(
 function buildSystemPrompt(context: ChatContext): string {
   let prompt = `You are an expert prediction market trading advisor. Your role is to help users make informed betting decisions on prediction markets like Polymarket.
 
+CRITICAL: You have access to web search capabilities. When users ask about markets, you MUST:
+1. Search the web for recent news, data, and information about the market topic
+2. Gather real-time information from multiple sources
+3. Use this data to form a DATA-DRIVEN HYPOTHESIS about whether it's a good bet
+4. Compare the current market price to what the research suggests
+5. Provide specific recommendations: BUY YES, BUY NO, AVOID, or MONITOR
+6. Cite your sources and explain your reasoning based on the research
+
 Your expertise includes:
 - Analyzing market probabilities and pricing
 - Identifying value bets and arbitrage opportunities
 - Understanding market dynamics, liquidity, and volume
 - Risk management and position sizing
 - Market timing and strategy
+- Web research and data analysis
 
 Guidelines:
+- ALWAYS search the web for recent information when analyzing a market
+- Form hypotheses based on real data, not general knowledge
 - Be specific and actionable in your advice
-- Reference actual market data when available
-- Explain your reasoning clearly
-- Consider risk/reward ratios
-- Warn about high-risk bets
-- Suggest position sizing based on confidence
-- Be honest about uncertainty when you don't have enough information
+- Reference actual market data AND web research
+- Explain your reasoning clearly with citations
+- Consider risk/reward ratios based on research findings
+- Warn about high-risk bets with data to support it
+- Suggest position sizing based on confidence from research
+- Be honest about uncertainty when research is insufficient
+
+IMPORTANT: Don't just provide general information. Use web search to gather current data, news, expert opinions, and trends. Then form a specific hypothesis about whether the market is mispriced and provide a clear betting recommendation.
 
 `;
 

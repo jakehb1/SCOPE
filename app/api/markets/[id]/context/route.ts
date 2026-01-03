@@ -3,6 +3,7 @@ import { MarketContext } from '@/types';
 import { generateMarketContext } from '@/lib/ai-service';
 import { getCachedContext, setCachedContext } from '@/lib/market-context-cache';
 import { fetchMarket } from '@/lib/polymarket-api';
+import { researchMarket, formatResearchForPrompt } from '@/lib/web-research';
 
 /**
  * API Route to fetch or generate market context using AI
@@ -35,12 +36,15 @@ export async function GET(
       );
     }
 
-    // Generate AI context
+    // Generate AI context with web research instructions
+    // The AI will search the web for real-time information
     const aiContext = await generateMarketContext({
       question: market.question,
       category: market.category,
       endDate: market.endDate,
       currentPrice: market.yesPrice,
+      // Pass search query for AI to use
+      searchQuery: `${market.question} ${market.category ? market.category : ''} latest news updates`,
     });
 
     // Build full context object
@@ -49,6 +53,9 @@ export async function GET(
       summary: aiContext.summary,
       keyDates: aiContext.keyDates,
       keyFactors: aiContext.keyFactors,
+      bettingHypothesis: aiContext.bettingHypothesis,
+      confidence: aiContext.confidence,
+      recommendation: aiContext.recommendation,
       relatedLinks: aiContext.relatedLinks,
       generatedAt: new Date().toISOString(),
     };

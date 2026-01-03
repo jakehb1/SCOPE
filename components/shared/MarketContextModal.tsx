@@ -114,6 +114,39 @@ export default function MarketContextModal({ market, isOpen, onClose }: MarketCo
                 </div>
               )}
 
+              {/* Betting Hypothesis */}
+              {context.bettingHypothesis && (
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <h4 className="font-bold text-primary-black mb-2">📊 Betting Hypothesis</h4>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line mb-2">{context.bettingHypothesis}</p>
+                  {context.confidence && (
+                    <div className="mt-2">
+                      <span className="text-sm font-medium text-primary-grey">Confidence: </span>
+                      <span className={`text-sm font-bold ${
+                        context.confidence === 'high' ? 'text-green-600' :
+                        context.confidence === 'medium' ? 'text-yellow-600' :
+                        'text-gray-600'
+                      }`}>
+                        {context.confidence.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  {context.recommendation && (
+                    <div className="mt-2">
+                      <span className="text-sm font-medium text-primary-grey">Recommendation: </span>
+                      <span className={`text-sm font-bold ${
+                        context.recommendation === 'BUY YES' ? 'text-green-600' :
+                        context.recommendation === 'BUY NO' ? 'text-red-600' :
+                        context.recommendation === 'AVOID' ? 'text-yellow-600' :
+                        'text-primary-grey'
+                      }`}>
+                        {context.recommendation}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Related Links */}
               {context.relatedLinks && context.relatedLinks.length > 0 && (
                 <div>
@@ -125,7 +158,7 @@ export default function MarketContextModal({ market, isOpen, onClose }: MarketCo
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary-red hover:text-primary-black underline"
+                          className="text-primary-grey hover:text-primary-black underline"
                         >
                           {link.title}
                         </a>

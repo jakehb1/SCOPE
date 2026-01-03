@@ -70,8 +70,9 @@ export async function POST(request: Request) {
       context.markets = relevantMarkets.slice(0, marketLimit);
     }
 
-    // Generate AI response
+    // Generate AI response with web search capability
     console.log('📨 Chat request received:', { messageLength: message.length, hasMarkets: !!context.markets, userBudget });
+    
     const response = await generateChatResponse(message, context);
     console.log('✅ Chat response generated, length:', response.length);
 
