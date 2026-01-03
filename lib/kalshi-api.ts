@@ -59,7 +59,9 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     // Path for signing should NOT include query string
     const authHeaders = generateKalshiAuth('GET', path, '', keyId, privateKey);
     
-    console.log(`🔐 Kalshi auth headers generated for path: ${path}`);
+    console.log(`🔐 Kalshi API: Fetching from ${fullUrl}`);
+    console.log(`🔐 Kalshi API: Auth path (for signing): ${path}`);
+    console.log(`🔐 Kalshi API: Key ID: ${keyId.substring(0, 8)}...`);
     
     const response = await fetch(fullUrl, {
       method: 'GET',
@@ -74,27 +76,66 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ Kalshi API error (${response.status}):`, errorText);
+      console.error(`❌ Request URL: ${fullUrl}`);
+      console.error(`❌ Auth headers:`, {
+        key: authHeaders['KALSHI-ACCESS-KEY'],
+        timestamp: authHeaders['KALSHI-ACCESS-TIMESTAMP'],
+        signatureLength: authHeaders['KALSHI-ACCESS-SIGNATURE']?.length,
+      });
       
       // If 401, authentication failed
       if (response.status === 401) {
         console.error('🔒 Kalshi authentication failed - check your credentials and signature format');
         console.error('   Verify: KALSHI_KEY_ID and KALSHI_PRIVATE_KEY are correct');
         console.error('   Check: Signature uses RSA-PSS with SHA-256');
+        console.error('   Error response:', errorText);
+      }
+      
+      // If 404, endpoint might be wrong
+      if (response.status === 404) {
+        console.error('🔍 Kalshi endpoint not found - trying alternative endpoints');
+        console.error('   Current: ', baseUrl);
+        console.error('   Try: https://trading-api.kalshi.com/trade-api/v2');
+        console.error('   Try: https://api.kalshi.com/trade-api/v2');
       }
       
       return {
         markets: [],
+        error: {
+          status: response.status,
+          message: errorText,
+        },
       };
     }
     
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      const text = await response.text();
+      console.error('❌ Failed to parse Kalshi API response as JSON');
+      console.error('   Response text:', text.substring(0, 500));
+      return {
+        markets: [],
+        error: {
+          status: response.status,
+          message: 'Invalid JSON response',
+        },
+      };
+    }
+    
     console.log('📦 Kalshi API response structure:', Object.keys(data));
-    console.log('📦 Kalshi API response sample:', JSON.stringify(data).substring(0, 500));
+    console.log('📦 Kalshi API response sample:', JSON.stringify(data).substring(0, 1000));
     
     // Transform Kalshi API response to our format
     // Kalshi API may return: { events: [...] } or { data: { events: [...] } } or direct array
     const events = data.events || data.data?.events || data.data?.markets || (Array.isArray(data) ? data : []);
     console.log(`📊 Found ${events.length} events in Kalshi response`);
+    
+    if (events.length === 0 && data) {
+      console.warn('⚠️ No events found in response, but response exists. Full structure:');
+      console.warn(JSON.stringify(data, null, 2).substring(0, 2000));
+    }
     
     const markets: KalshiMarket[] = events.flatMap((item: any) => {
       // Handle different possible response structures
@@ -128,12 +169,16 @@ export async function fetchKalshiMarkets(limit: number = 500): Promise<KalshiRes
       cursor: data.cursor || data.next_cursor,
     };
   } catch (error) {
-    console.error('Error fetching Kalshi markets:', error);
+    console.error('❌ Error fetching Kalshi markets:', error);
     if (error instanceof Error) {
-      console.error('Error details:', error.message);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
     }
     return {
       markets: [],
+      error: {
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
     };
   }
 }
