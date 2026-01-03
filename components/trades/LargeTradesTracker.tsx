@@ -14,14 +14,15 @@ const TRADE_TYPE_FILTERS: { value: TradeTypeFilter; label: string }[] = [
   { value: 'sells', label: 'Sells Only' },
 ];
 
-type TimeFilter = 'all' | '1h' | '24h' | '7d' | '30d';
+type TimeFilter = 'all' | '5m' | '15m' | '30m' | '1h' | '24h';
 
-const TIME_FILTERS: { value: TimeFilter; label: string; hours: number }[] = [
-  { value: 'all', label: 'All Time', hours: 0 },
-  { value: '1h', label: 'Last Hour', hours: 1 },
-  { value: '24h', label: 'Last 24 Hours', hours: 24 },
-  { value: '7d', label: 'Last 7 Days', hours: 168 },
-  { value: '30d', label: 'Last 30 Days', hours: 720 },
+const TIME_FILTERS: { value: TimeFilter; label: string; minutes: number }[] = [
+  { value: 'all', label: 'All Time', minutes: 0 },
+  { value: '5m', label: '5 Min', minutes: 5 },
+  { value: '15m', label: '15 Min', minutes: 15 },
+  { value: '30m', label: '30 Min', minutes: 30 },
+  { value: '1h', label: '1 Hour', minutes: 60 },
+  { value: '24h', label: '24 Hours', minutes: 1440 },
 ];
 
 export default function LargeTradesTracker() {
@@ -93,9 +94,9 @@ export default function LargeTradesTracker() {
     // Filter by time
     if (timeFilter !== 'all') {
       const timeFilterConfig = TIME_FILTERS.find(f => f.value === timeFilter);
-      if (timeFilterConfig && timeFilterConfig.hours > 0) {
+      if (timeFilterConfig && timeFilterConfig.minutes > 0) {
         const tradeTime = new Date(trade.time).getTime();
-        const cutoffTime = Date.now() - (timeFilterConfig.hours * 60 * 60 * 1000);
+        const cutoffTime = Date.now() - (timeFilterConfig.minutes * 60 * 1000);
         if (tradeTime < cutoffTime) return false;
       }
     }
