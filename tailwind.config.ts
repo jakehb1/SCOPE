@@ -19,11 +19,11 @@ const config: Config = {
         // PredictFolio uses subtle grays and clean backgrounds
         background: {
           light: "#FFFFFF",
-          dark: "#0F172A", // slate-900
+          dark: "#40424C", // Custom dark mode background
         },
         surface: {
           light: "#F8FAFC", // slate-50
-          dark: "#1E293B", // slate-800
+          dark: "#4A4D58", // Slightly lighter for surfaces
         },
       },
       screens: {

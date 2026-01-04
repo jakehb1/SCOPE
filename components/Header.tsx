@@ -51,7 +51,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
+    <header className="sticky top-0 z-50 bg-white dark:bg-[#40424C] border-b border-gray-200 dark:border-[#4A4D58] backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
       <nav className="container mx-auto px-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -67,8 +67,8 @@ export default function Header() {
                 href={item.href}
                 className={`px-3 py-1.5 text-sm font-medium capitalize rounded-md transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-[#40424C]'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#4A4D58]'
                 }`}
               >
                 {item.name}
@@ -81,7 +81,7 @@ export default function Header() {
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#4A4D58] rounded-md transition-colors"
               aria-label="Toggle dark mode"
             >
               {isDarkMode ? (
@@ -100,7 +100,7 @@ export default function Header() {
               href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-all duration-200"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#4A4D58] rounded-md transition-all duration-200"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -110,7 +110,7 @@ export default function Header() {
 
             {/* Hamburger Menu Button - Right side */}
             <button
-              className="lg:hidden text-gray-900 dark:text-white focus:outline-none p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+              className="lg:hidden text-gray-900 dark:text-white focus:outline-none p-2 hover:bg-gray-100 dark:hover:bg-[#4A4D58] rounded-md transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -135,15 +135,15 @@ export default function Header() {
 
         {/* Mobile Navigation - Slides down from top */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 dark:border-slate-800 py-3 space-y-1">
+          <div className="lg:hidden border-t border-gray-200 dark:border-[#4A4D58] py-3 space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className={`block px-4 py-2 text-sm font-medium capitalize rounded-md transition-all ${
                   isActive(item.href)
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-[#40424C]'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#4A4D58]'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -154,7 +154,7 @@ export default function Header() {
               href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#4A4D58] rounded-md transition-all"
               onClick={() => setIsMenuOpen(false)}
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
