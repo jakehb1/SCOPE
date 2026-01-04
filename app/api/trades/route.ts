@@ -8,9 +8,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const minAmount = parseFloat(searchParams.get('minAmount') || '10000');
   const limit = parseInt(searchParams.get('limit') || '50', 10);
+  
+  // Support time filtering
+  const before = searchParams.get('before') ? parseInt(searchParams.get('before')!, 10) : undefined;
+  const after = searchParams.get('after') ? parseInt(searchParams.get('after')!, 10) : undefined;
 
   try {
-    const trades = await fetchLargeTrades(minAmount, limit);
+    const trades = await fetchLargeTrades(minAmount, limit, before, after);
 
     return NextResponse.json(trades, {
       headers: {

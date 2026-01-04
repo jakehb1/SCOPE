@@ -40,7 +40,17 @@ export default function LargeTradesTracker() {
       setError(null);
       const min = parseFloat(minAmount) || 10000;
       
-      const response = await fetch(`/api/trades?minAmount=${min}&limit=100`);
+      // Calculate time filter if needed
+      let url = `/api/trades?minAmount=${min}&limit=100`;
+      if (timeFilter !== 'all') {
+        const timeFilterConfig = TIME_FILTERS.find(f => f.value === timeFilter);
+        if (timeFilterConfig && timeFilterConfig.minutes > 0) {
+          const after = Math.floor((Date.now() - timeFilterConfig.minutes * 60 * 1000) / 1000);
+          url += `&after=${after}`;
+        }
+      }
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch trades');

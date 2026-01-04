@@ -14,6 +14,7 @@ export default function Header() {
     { name: 'chat', href: '/chat' },
     { name: 'recommendations', href: '/recommendations' },
     { name: 'alerts', href: '/alerts' },
+    { name: 'new accounts', href: '/new-accounts' },
     { name: 'whales', href: '/whales' },
     { name: 'arbitrage', href: '/arbitrage' },
     { name: 'roadmap', href: '/roadmap' },

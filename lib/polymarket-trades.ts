@@ -20,28 +20,133 @@ export interface LargeTradesResponse {
 /**
  * Fetch large trades from Polymarket Data API
  * 
- * Note: This is a placeholder implementation. The actual endpoint
- * may need to be adjusted based on Polymarket's API documentation.
+ * Uses Polymarket Data API /trades endpoint
+ * Docs: https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
  */
 export async function fetchLargeTrades(
   minAmount: number = 10000,
-  limit: number = 50
+  limit: number = 50,
+  before?: number, // Unix timestamp in seconds
+  after?: number   // Unix timestamp in seconds
 ): Promise<LargeTradesResponse> {
   try {
-    // Try CLOB API first (recommended approach)
-    try {
-      const client = new ClobClient(CLOB_HOST, CHAIN_ID);
-      
-      // Try to get trades from CLOB API
-      // Note: CLOB API might not have a direct trades endpoint
-      // We'll try the data API endpoints as fallback
-      console.log('🔍 Attempting to fetch trades from CLOB API...');
-    } catch (clobError) {
-      console.debug('CLOB client error:', clobError);
+    // Use Polymarket Data API /trades endpoint
+    // This endpoint supports filtering by market, before, and after timestamps
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+    });
+    
+    if (before) {
+      params.append('before', before.toString());
+    }
+    if (after) {
+      params.append('after', after.toString());
     }
 
-    // Try CLOB API endpoints for trades
-    // Note: Polymarket's trades API may require authentication or use different endpoints
+    const tradesUrl = `${DATA_API_BASE}/trades?${params.toString()}`;
+    console.log(`🔍 Fetching trades from: ${tradesUrl}`);
+    
+    const response = await fetch(tradesUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 10 }, // Cache for 10 seconds for near real-time
+    });
+
+    console.log(`📡 Trades API response status: ${response.status}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`📦 Trades API response structure:`, Object.keys(data));
+      console.log(`📦 Trades API response sample:`, JSON.stringify(data).substring(0, 1000));
+      
+      // Polymarket Data API /trades returns an array of trades
+      const rawTrades = Array.isArray(data) ? data : data.trades || data.data || data.results || [];
+      console.log(`📊 Found ${rawTrades.length} raw trades from Data API`);
+      
+      if (rawTrades.length > 0) {
+        const trades: Trade[] = rawTrades.map((item: any) => {
+          // Polymarket Data API trade structure
+          // Based on: https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
+          const size = parseFloat(item.size || item.usdcSize || item.amount || '0') || 0;
+          const price = parseFloat(item.price || item.avgPrice || item.fillPrice || '0') || 0;
+          const shares = parseFloat(item.shares || item.amount || '0') || 0;
+          
+          // Parse timestamp - Polymarket uses Unix timestamps in seconds
+          let tradeTime = new Date().toISOString();
+          if (item.timestamp || item.time || item.createdAt) {
+            const timeValue = item.timestamp || item.time || item.createdAt;
+            if (typeof timeValue === 'number') {
+              // Unix timestamp - check if seconds or milliseconds
+              const timestamp = timeValue > 1000000000000 ? timeValue : timeValue * 1000;
+              const parsed = new Date(timestamp);
+              if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2020) {
+                tradeTime = parsed.toISOString();
+              }
+            } else if (typeof timeValue === 'string') {
+              const parsed = new Date(timeValue);
+              if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2020) {
+                tradeTime = parsed.toISOString();
+              }
+            }
+          }
+          
+          return {
+            id: item.id || item.transactionHash || item.txHash || item.fillId || `trade_${Date.now()}_${Math.random()}`,
+            trader: item.user || item.taker || item.maker || item.trader || 'Unknown',
+            traderAddress: item.userAddress || item.taker || item.maker || item.user || item.walletAddress,
+            market: item.marketQuestion || item.question || item.market || item.marketTitle || 'Unknown Market',
+            marketId: item.conditionId || item.condition_id || item.marketId || '',
+            marketSlug: item.marketSlug || item.slug,
+            transactionHash: item.transactionHash || item.txHash || item.id,
+            shares: shares || (size && price ? size / price : 0),
+            investment: size,
+            price: price > 1 ? price : price * 100, // Convert to percentage if needed
+            side: (item.side || item.direction || item.type || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
+            time: tradeTime,
+            category: item.category || item.marketCategory,
+            isInsiderLike: false,
+          };
+        }).filter((trade: Trade) => {
+          // Filter out invalid trades
+          const tradeDate = new Date(trade.time);
+          const isValidDate = !isNaN(tradeDate.getTime()) && tradeDate.getFullYear() >= 2020;
+          const hasValidAmount = trade.investment >= minAmount && trade.investment > 0;
+          const hasValidPrice = trade.price > 0 && trade.price <= 100;
+          const hasValidMarket = trade.market && trade.market !== 'Unknown Market';
+          
+          const passes = hasValidAmount && hasValidPrice && isValidDate && hasValidMarket;
+          
+          if (!passes) {
+            console.debug(`Filtered out invalid trade:`, {
+              id: trade.id,
+              date: trade.time,
+              year: tradeDate.getFullYear(),
+              investment: trade.investment,
+              price: trade.price,
+              market: trade.market,
+            });
+          }
+          
+          return passes;
+        });
+
+        if (trades.length > 0) {
+          console.log(`✅ Processed ${trades.length} real trades from Data API`);
+          return {
+            trades: trades.slice(0, limit),
+            total: trades.length,
+          };
+        }
+      }
+    } else {
+      const errorText = await response.text();
+      console.log(`❌ Trades API returned ${response.status}: ${errorText.substring(0, 500)}`);
+    }
+
+    // Fallback: Try CLOB API endpoints
     const clobEndpoints = [
       `${CLOB_HOST}/data/trades`,
       `${CLOB_HOST}/trades`,
