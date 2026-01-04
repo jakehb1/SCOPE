@@ -269,6 +269,7 @@ export async function fetchLargeTrades(
       limit: limit.toString(),
     });
 
+    // Note: /trades already tried above, so only try alternative endpoints
     const endpoints = [
       { path: `/fills`, fallbackParams },
       { path: `/transactions`, fallbackParams },
