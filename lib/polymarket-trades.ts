@@ -30,23 +30,36 @@ export async function fetchLargeTrades(
   after?: number   // Unix timestamp in seconds
 ): Promise<LargeTradesResponse> {
   try {
-    // Use Polymarket Data API /trades endpoint
-    // This endpoint supports filtering by market, before, and after timestamps
+    // Use Polymarket Data API /activity endpoint with type=TRADE
+    // Docs: https://docs.polymarket.com/api-reference/core/get-user-on-chain-activity
+    // This endpoint provides user activities including trades
     const params = new URLSearchParams({
-      limit: limit.toString(),
+      type: 'TRADE',
     });
     
-    if (before) {
-      params.append('before', before.toString());
-    }
+    // Calculate time range - if timeframeMinutes is provided, use it
+    // Otherwise default to last 24 hours
+    const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+    let startTime = now - (24 * 60 * 60); // Default: 24 hours ago
+    
     if (after) {
-      params.append('after', after.toString());
+      startTime = after;
+    } else if (before) {
+      // If only before is provided, go back 24 hours from before
+      startTime = before - (24 * 60 * 60);
+    }
+    
+    params.append('start', startTime.toString());
+    if (before) {
+      params.append('end', before.toString());
+    } else {
+      params.append('end', now.toString());
     }
 
-    const tradesUrl = `${DATA_API_BASE}/trades?${params.toString()}`;
-    console.log(`🔍 Fetching trades from: ${tradesUrl}`);
+    const activityUrl = `${DATA_API_BASE}/activity?${params.toString()}`;
+    console.log(`🔍 Fetching trades from activity endpoint: ${activityUrl}`);
     
-    const response = await fetch(tradesUrl, {
+    const response = await fetch(activityUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -55,29 +68,35 @@ export async function fetchLargeTrades(
       next: { revalidate: 10 }, // Cache for 10 seconds for near real-time
     });
 
-    console.log(`📡 Trades API response status: ${response.status}`);
+    console.log(`📡 Activity API response status: ${response.status}`);
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`📦 Trades API response structure:`, Object.keys(data));
-      console.log(`📦 Trades API response sample:`, JSON.stringify(data).substring(0, 1000));
+      console.log(`📦 Activity API response structure:`, Object.keys(data));
+      console.log(`📦 Activity API response sample:`, JSON.stringify(data).substring(0, 1000));
       
-      // Polymarket Data API /trades returns an array of trades
-      const rawTrades = Array.isArray(data) ? data : data.trades || data.data || data.results || [];
-      console.log(`📊 Found ${rawTrades.length} raw trades from Data API`);
+      // Activity API returns an array of activities
+      const rawActivities = Array.isArray(data) ? data : data.activities || data.data || data.results || [];
+      console.log(`📊 Found ${rawActivities.length} raw activities from Activity API`);
+      
+      // Filter for TRADE type activities and extract trade data
+      const rawTrades = rawActivities.filter((item: any) => 
+        item.type === 'TRADE' || item.activityType === 'TRADE' || item.kind === 'TRADE'
+      );
+      console.log(`📊 Filtered to ${rawTrades.length} TRADE activities`);
       
       if (rawTrades.length > 0) {
         const trades: Trade[] = rawTrades.map((item: any) => {
-          // Polymarket Data API trade structure
-          // Based on: https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets
-          const size = parseFloat(item.size || item.usdcSize || item.amount || '0') || 0;
-          const price = parseFloat(item.price || item.avgPrice || item.fillPrice || '0') || 0;
-          const shares = parseFloat(item.shares || item.amount || '0') || 0;
+          // Activity API trade structure
+          // Fields: proxyWallet, usdcSize, timestamp, conditionId, etc.
+          const size = parseFloat(item.usdcSize || item.size || item.amount || item.value || '0') || 0;
+          const price = parseFloat(item.price || item.avgPrice || item.fillPrice || item.executionPrice || '0') || 0;
+          const shares = parseFloat(item.shares || item.amount || item.quantity || '0') || 0;
           
-          // Parse timestamp - Polymarket uses Unix timestamps in seconds
+          // Parse timestamp - Activity API uses Unix timestamps in seconds
           let tradeTime = new Date().toISOString();
-          if (item.timestamp || item.time || item.createdAt) {
-            const timeValue = item.timestamp || item.time || item.createdAt;
+          if (item.timestamp || item.time || item.createdAt || item.created_at) {
+            const timeValue = item.timestamp || item.time || item.createdAt || item.created_at;
             if (typeof timeValue === 'number') {
               // Unix timestamp - check if seconds or milliseconds
               const timestamp = timeValue > 1000000000000 ? timeValue : timeValue * 1000;
@@ -93,20 +112,26 @@ export async function fetchLargeTrades(
             }
           }
           
+          // Extract market info from activity
+          const marketInfo = item.market || item.marketQuestion || item.question || {};
+          const marketTitle = typeof marketInfo === 'string' 
+            ? marketInfo 
+            : (marketInfo.title || marketInfo.question || marketInfo.name || 'Unknown Market');
+          
           return {
             id: item.id || item.transactionHash || item.txHash || item.fillId || `trade_${Date.now()}_${Math.random()}`,
-            trader: item.user || item.taker || item.maker || item.trader || 'Unknown',
-            traderAddress: item.userAddress || item.taker || item.maker || item.user || item.walletAddress,
-            market: item.marketQuestion || item.question || item.market || item.marketTitle || 'Unknown Market',
+            trader: item.userName || item.user || item.taker || item.maker || item.trader || 'Unknown',
+            traderAddress: item.proxyWallet || item.proxy_wallet || item.userAddress || item.taker || item.maker || item.user || item.walletAddress,
+            market: marketTitle,
             marketId: item.conditionId || item.condition_id || item.marketId || '',
-            marketSlug: item.marketSlug || item.slug,
-            transactionHash: item.transactionHash || item.txHash || item.id,
+            marketSlug: item.marketSlug || item.slug || (marketInfo.slug || undefined),
+            transactionHash: item.transactionHash || item.txHash || item.id || item.transaction_id,
             shares: shares || (size && price ? size / price : 0),
             investment: size,
             price: price > 1 ? price : price * 100, // Convert to percentage if needed
             side: (item.side || item.direction || item.type || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
             time: tradeTime,
-            category: item.category || item.marketCategory,
+            category: item.category || item.marketCategory || (marketInfo.category || undefined),
             isInsiderLike: false,
           };
         }).filter((trade: Trade) => {
@@ -134,7 +159,7 @@ export async function fetchLargeTrades(
         });
 
         if (trades.length > 0) {
-          console.log(`✅ Processed ${trades.length} real trades from Data API`);
+          console.log(`✅ Processed ${trades.length} real trades from Activity API`);
           return {
             trades: trades.slice(0, limit),
             total: trades.length,
@@ -143,7 +168,7 @@ export async function fetchLargeTrades(
       }
     } else {
       const errorText = await response.text();
-      console.log(`❌ Trades API returned ${response.status}: ${errorText.substring(0, 500)}`);
+      console.log(`❌ Activity API returned ${response.status}: ${errorText.substring(0, 500)}`);
     }
 
     // Fallback: Try CLOB API endpoints

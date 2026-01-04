@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { NewAccountTrade } from '@/lib/polymarket-new-accounts';
+import { NewAccountEntry } from '@/lib/polymarket-new-accounts';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import DashboardContainer from '@/components/shared/DashboardContainer';
 import ElevatedCard from '@/components/shared/ElevatedCard';
@@ -16,7 +16,7 @@ const ACCOUNT_AGE_OPTIONS = [
 ];
 
 export default function NewAccountsTracker() {
-  const [accounts, setAccounts] = useState<NewAccountTrade[]>([]);
+  const [accounts, setAccounts] = useState<NewAccountEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minTradeSize, setMinTradeSize] = useState<string>('10000');
@@ -209,25 +209,26 @@ export default function NewAccountsTracker() {
             ) : (
               <div className="space-y-4">
                 {accounts.map((account) => (
-                  <ElevatedCard key={account.accountAddress} className="p-6">
+                  <ElevatedCard key={account.traderAddress} className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-bold text-primary-black">
-                            {account.accountAddress.substring(0, 10)}...{account.accountAddress.substring(account.accountAddress.length - 8)}
+                            {account.trader}
                           </h3>
                           <button
-                            onClick={() => window.open(getProfileUrl(account.accountAddress), '_blank', 'noopener,noreferrer')}
+                            onClick={() => window.open(account.profileUrl, '_blank', 'noopener,noreferrer')}
                             className="text-sm text-primary-grey hover:text-primary-black underline"
                           >
                             View Profile →
                           </button>
                         </div>
-                        {account.firstTradeDate && (
-                          <p className="text-sm text-primary-grey">
-                            First trade: {formatTime(account.firstTradeDate)}
-                          </p>
-                        )}
+                        <p className="text-sm text-primary-grey mb-1">
+                          {account.traderAddress.substring(0, 6)}...{account.traderAddress.substring(account.traderAddress.length - 4)}
+                        </p>
+                        <p className="text-sm text-primary-grey">
+                          Account age: {account.accountAgeDays} days • First trade: {formatTime(account.firstTradeTime)}
+                        </p>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-primary-black">

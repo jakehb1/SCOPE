@@ -45,8 +45,7 @@ export default function LargeTradesTracker() {
       if (timeFilter !== 'all') {
         const timeFilterConfig = TIME_FILTERS.find(f => f.value === timeFilter);
         if (timeFilterConfig && timeFilterConfig.minutes > 0) {
-          const after = Math.floor((Date.now() - timeFilterConfig.minutes * 60 * 1000) / 1000);
-          url += `&after=${after}`;
+          url += `&timeframeMinutes=${timeFilterConfig.minutes}`;
         }
       }
       

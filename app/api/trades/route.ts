@@ -9,9 +9,20 @@ export async function GET(request: Request) {
   const minAmount = parseFloat(searchParams.get('minAmount') || '10000');
   const limit = parseInt(searchParams.get('limit') || '50', 10);
   
-  // Support time filtering
-  const before = searchParams.get('before') ? parseInt(searchParams.get('before')!, 10) : undefined;
-  const after = searchParams.get('after') ? parseInt(searchParams.get('after')!, 10) : undefined;
+  // Support time filtering - convert timeframeMinutes to before/after
+  let before: number | undefined;
+  let after: number | undefined;
+  
+  const timeframeMinutes = parseInt(searchParams.get('timeframeMinutes') || '0', 10);
+  if (timeframeMinutes > 0) {
+    const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+    after = now - (timeframeMinutes * 60);
+    before = now;
+  } else {
+    // Support explicit before/after if provided
+    before = searchParams.get('before') ? parseInt(searchParams.get('before')!, 10) : undefined;
+    after = searchParams.get('after') ? parseInt(searchParams.get('after')!, 10) : undefined;
+  }
 
   try {
     const trades = await fetchLargeTrades(minAmount, limit, before, after);
