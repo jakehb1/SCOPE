@@ -5,11 +5,11 @@ import { fetchLargeTrades } from '@/lib/polymarket-trades';
  * API Route to fetch large trades from Polymarket
  */
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const minAmount = parseFloat(searchParams.get('minAmount') || '10000');
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+  const { searchParams } = new URL(request.url);
+  const minAmount = parseFloat(searchParams.get('minAmount') || '10000');
+  const limit = parseInt(searchParams.get('limit') || '50', 10);
 
+  try {
     const trades = await fetchLargeTrades(minAmount, limit);
 
     return NextResponse.json(trades, {
@@ -19,26 +19,15 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error in trades API route:', error);
-    // Even on error, try to return mock data so UI still works
-    try {
-      const { fetchLargeTrades } = await import('@/lib/polymarket-trades');
-      const mockTrades = await fetchLargeTrades(minAmount, limit);
-      return NextResponse.json({
-        trades: mockTrades.trades,
-        total: mockTrades.total,
-        error: 'Using mock data - API unavailable',
-      });
-    } catch (fallbackError) {
-      return NextResponse.json(
-        { 
-          error: 'Failed to fetch trades', 
-          details: error instanceof Error ? error.message : 'Unknown error',
-          trades: [],
-          total: 0,
-        },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch trades', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        trades: [],
+        total: 0,
+      },
+      { status: 500 }
+    );
   }
 }
 
