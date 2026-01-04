@@ -81,9 +81,10 @@
   }
 
   body {
-    @apply bg-primary-offwhite text-primary-black;
+    @apply bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -109,7 +110,7 @@
   }
 
   .elevated-card {
-    @apply bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300;
+    @apply bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all duration-300;
   }
 
   .dashboard-section {

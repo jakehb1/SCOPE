@@ -10,10 +10,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // PredictFolio-inspired color scheme
         primary: {
           grey: "#6B7280",
           offwhite: "#F9FAFB",
           black: "#000000",
+        },
+        // PredictFolio uses subtle grays and clean backgrounds
+        background: {
+          light: "#FFFFFF",
+          dark: "#0F172A", // slate-900
+        },
+        surface: {
+          light: "#F8FAFC", // slate-50
+          dark: "#1E293B", // slate-800
         },
       },
       screens: {
