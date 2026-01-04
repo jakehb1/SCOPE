@@ -264,18 +264,17 @@ export async function fetchLargeTrades(
       }
     }
 
-    // Fallback: Try Polymarket Data API endpoints
-    const params = new URLSearchParams({
+    // Fallback: Try Polymarket Data API alternative endpoints
+    const fallbackParams = new URLSearchParams({
       limit: limit.toString(),
     });
 
     const endpoints = [
-      { path: `/trades`, params },
-      { path: `/fills`, params },
-      { path: `/transactions`, params },
+      { path: `/fills`, fallbackParams },
+      { path: `/transactions`, fallbackParams },
     ];
 
-    for (const { path, params: endpointParams } of endpoints) {
+    for (const { path, fallbackParams: endpointParams } of endpoints) {
       try {
         const url = `${DATA_API_BASE}${path}?${endpointParams.toString()}`;
         console.log(`🔍 Trying endpoint: ${url}`);
