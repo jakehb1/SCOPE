@@ -14,6 +14,7 @@ const DATA_API_BASE = 'https://data-api.polymarket.com/v1';
 export interface LargeTradesResponse {
   trades: Trade[];
   total: number;
+  error?: string;
 }
 
 /**
@@ -276,13 +277,15 @@ export async function fetchLargeTrades(
       }
     }
 
-    // If no endpoint works, we can't return mock data for real transactions
-    // Return empty array instead - user should see that no trades are available
+    // If no endpoint works, Polymarket trades API is not publicly available
+    // Trades require authentication or WebSocket connection
     console.warn('⚠️ Could not fetch real trades from Polymarket API');
-    console.warn('   All endpoints failed - trades API may require authentication or different endpoint');
+    console.warn('   Polymarket trades API requires authentication or WebSocket connection');
+    console.warn('   REST API endpoints for trades are not publicly available');
     return {
       trades: [],
       total: 0,
+      error: 'Trades API not available - requires authentication or WebSocket',
     };
   } catch (error) {
     console.error('❌ Error fetching large trades:', error);

@@ -271,13 +271,30 @@ export default function LargeTradesTracker() {
         {!loading && !error && (
           <>
             {filteredTrades.length === 0 ? (
-              <ElevatedCard className="p-6 text-center">
-                <p className="text-primary-black opacity-70">
-                  No large trades found matching your criteria.
-                </p>
-                <p className="text-sm text-primary-grey mt-2">
-                  Try lowering the minimum trade size or check back later.
-                </p>
+              <ElevatedCard className="p-6">
+                <div className="text-center">
+                  <p className="text-primary-black opacity-70 mb-4">
+                    No trades available at this time.
+                  </p>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
+                    <p className="text-yellow-800 font-semibold mb-2">⚠️ Trades API Status</p>
+                    <p className="text-yellow-700 text-sm mb-2">
+                      Polymarket's trades API requires authentication or a WebSocket connection. 
+                      The REST API endpoints for trades are not publicly available.
+                    </p>
+                    <p className="text-yellow-700 text-sm mb-2">
+                      To enable real trades tracking, you would need to:
+                    </p>
+                    <ul className="text-yellow-700 text-sm list-disc list-inside space-y-1 mb-2">
+                      <li>Set up Polymarket API authentication</li>
+                      <li>Implement WebSocket connection to RTDS (Real-Time Data Socket)</li>
+                      <li>Or use a third-party service that provides trade data</li>
+                    </ul>
+                    <p className="text-yellow-700 text-sm">
+                      For now, this page will show trades once the API is properly configured.
+                    </p>
+                  </div>
+                </div>
               </ElevatedCard>
             ) : (
               <ElevatedCard className="p-0 overflow-hidden">
