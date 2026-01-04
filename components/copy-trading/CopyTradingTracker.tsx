@@ -110,10 +110,7 @@ export default function CopyTradingTracker() {
     : null;
 
   return (
-    <DashboardContainer
-      title="Copy Trading"
-      subtitle="Monitor top traders' positions and track their performance"
-    >
+    <DashboardContainer>
       <div className="space-y-6">
         {/* Filters */}
         <ElevatedCard className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">

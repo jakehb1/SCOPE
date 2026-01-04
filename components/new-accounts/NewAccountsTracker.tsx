@@ -100,10 +100,7 @@ export default function NewAccountsTracker() {
   };
 
   return (
-    <DashboardContainer
-      title="New Accounts Tracker"
-      subtitle="Recently created accounts making large trades"
-    >
+    <DashboardContainer>
       <div className="space-y-6">
         {/* Controls */}
         <ElevatedCard className="p-6">

@@ -202,10 +202,7 @@ function getStatusIcon(status: RoadmapItem['status']) {
 
 export default function RoadmapView() {
   return (
-    <DashboardContainer
-      title="Product Roadmap"
-      subtitle="What's coming next for scope"
-    >
+    <DashboardContainer>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Introduction */}
         <ElevatedCard className="p-6 mb-8">

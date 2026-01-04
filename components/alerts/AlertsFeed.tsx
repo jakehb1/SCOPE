@@ -160,10 +160,7 @@ export default function AlertsFeed() {
 
   if (checkingSubscription) {
     return (
-      <DashboardContainer
-        title="SMS Market Alerts"
-        subtitle="Get notified via text when new markets are created"
-      >
+      <DashboardContainer>
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner size="lg" />
         </div>

@@ -145,8 +145,6 @@ export default function MarketsExplorer() {
 
   return (
     <DashboardContainer
-      title="markets"
-      subtitle="browse and track prediction markets from polymarket"
       actions={
         <div className="flex items-center gap-3">
           {sortOptions.map((option) => (

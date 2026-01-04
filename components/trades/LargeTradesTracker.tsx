@@ -166,10 +166,7 @@ export default function LargeTradesTracker() {
   };
 
   return (
-    <DashboardContainer
-      title="Large Trades Tracker"
-      subtitle="Live tracking of significant purchases on Polymarket"
-    >
+    <DashboardContainer>
       <div className="space-y-6">
         {/* Controls */}
         <ElevatedCard className="p-6">
