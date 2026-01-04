@@ -169,28 +169,35 @@ export default function LargeTradesTracker() {
     <DashboardContainer>
       <div className="space-y-6">
         {/* Controls */}
-        <ElevatedCard className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="minAmount" className="block text-sm font-medium text-primary-black mb-2">
-                Minimum Trade Size ($)
-              </label>
-              <ElevatedInput
-                id="minAmount"
-                type="number"
-                value={minAmount}
-                onChange={(e) => setMinAmount(e.target.value)}
-                placeholder="10000"
-                className="w-full md:w-48"
-              />
+        <ElevatedCard className="p-4 md:p-6">
+          <div className="flex flex-col gap-4 md:gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex-1 w-full sm:w-auto">
+                <label htmlFor="minAmount" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Minimum Trade Size ($)
+                </label>
+                <ElevatedInput
+                  id="minAmount"
+                  type="number"
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
+                  placeholder="10000"
+                  className="w-full sm:w-48"
+                />
+              </div>
+
+              <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400 text-right">
+                <div>Last updated: {lastUpdate.toLocaleTimeString()}</div>
+                <div className="text-xs">Auto-refreshes every 15s</div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary-black mb-2">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Trade Type
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {TRADE_TYPE_FILTERS.map((filter) => (
                     <PillButton
                       key={filter.value}
@@ -202,8 +209,8 @@ export default function LargeTradesTracker() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-primary-black mb-2">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Time Period
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -219,7 +226,7 @@ export default function LargeTradesTracker() {
               </div>
             </div>
 
-            <div className="text-sm text-primary-grey">
+            <div className="sm:hidden text-sm text-gray-600 dark:text-gray-400 text-center pt-2 border-t border-gray-200 dark:border-[#565862]">
               <div>Last updated: {lastUpdate.toLocaleTimeString()}</div>
               <div className="text-xs">Auto-refreshes every 15s</div>
             </div>
@@ -227,26 +234,26 @@ export default function LargeTradesTracker() {
         </ElevatedCard>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Total Trades</div>
-            <div className="text-2xl font-bold text-primary-black">{filteredTrades.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Trades</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{filteredTrades.length}</div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Total Volume</div>
-            <div className="text-2xl font-bold text-primary-black">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Volume</div>
+            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {formatCurrency(filteredTrades.reduce((sum, t) => sum + t.investment, 0))}
             </div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Buys</div>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Buys</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {filteredTrades.filter(t => t.side === 'buy').length}
             </div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Sells</div>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Sells</div>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
               {filteredTrades.filter(t => t.side === 'sell').length}
             </div>
           </ElevatedCard>
@@ -262,11 +269,11 @@ export default function LargeTradesTracker() {
 
         {/* Error State */}
         {error && !loading && (
-          <ElevatedCard className="p-6 bg-red-50 border-red-200">
-            <p className="text-red-800">{error}</p>
+          <ElevatedCard className="p-4 md:p-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+            <p className="text-red-800 dark:text-red-200">{error}</p>
             <button
               onClick={fetchTrades}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="mt-4 px-5 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 min-h-[44px] font-medium"
             >
               Retry
             </button>
@@ -303,90 +310,157 @@ export default function LargeTradesTracker() {
                 </div>
               </ElevatedCard>
             ) : (
-              <ElevatedCard className="p-0 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Time
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Market
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Trader
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Side
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Price
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Shares
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredTrades.map((trade) => (
-                        <tr
-                        key={trade.id}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => {
-                          const url = getTradeUrl(trade);
-                          if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
-                        }}
-                        title={`View trade on Polymarket${trade.transactionHash ? ` (${trade.transactionHash.substring(0, 8)}...)` : ''}`}
+              <>
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-3">
+                  {filteredTrades.map((trade) => (
+                    <ElevatedCard
+                      key={trade.id}
+                      className="p-4 cursor-pointer"
+                      onClick={() => {
+                        const url = getTradeUrl(trade);
+                        if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
+                            {trade.market}
+                          </div>
+                          {trade.category && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{trade.category}</div>
+                          )}
+                        </div>
+                        <span
+                          className={`ml-2 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                            trade.side === 'buy'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-black">
-                            {formatTime(trade.time)}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-primary-black">
-                              {trade.market}
-                            </div>
-                            {trade.category && (
-                              <div className="text-xs text-primary-grey">{trade.category}</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-primary-black">
-                              {trade.traderAddress || trade.trader}
-                            </div>
-                            {trade.isInsiderLike && (
-                              <div className="text-xs text-yellow-600 font-semibold">Insider</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                trade.side === 'buy'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {trade.side.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary-black text-right">
-                            {formatCurrency(trade.investment)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-black text-right">
-                            {trade.price.toFixed(2)}%
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-grey text-right">
-                            {trade.shares.toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          {trade.side.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Amount</div>
+                          <div className="font-semibold text-gray-900 dark:text-white">{formatCurrency(trade.investment)}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Price</div>
+                          <div className="font-semibold text-gray-900 dark:text-white">{trade.price.toFixed(2)}%</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Shares</div>
+                          <div className="text-gray-700 dark:text-gray-300">{trade.shares.toFixed(2)}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Time</div>
+                          <div className="text-gray-700 dark:text-gray-300">{formatTime(trade.time)}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-[#565862]">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {trade.traderAddress || trade.trader}
+                          {trade.isInsiderLike && (
+                            <span className="ml-2 text-yellow-600 dark:text-yellow-400 font-semibold">• Insider</span>
+                          )}
+                        </div>
+                      </div>
+                    </ElevatedCard>
+                  ))}
                 </div>
-              </ElevatedCard>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <ElevatedCard className="p-0 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 dark:bg-[#565862] border-b border-gray-200 dark:border-[#6A6D72]">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Time
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Market
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Trader
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Side
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Amount
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Shares
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-[#4A4D58] divide-y divide-gray-200 dark:divide-[#565862]">
+                          {filteredTrades.map((trade) => (
+                            <tr
+                            key={trade.id}
+                            className="hover:bg-gray-50 dark:hover:bg-[#565862] transition-colors cursor-pointer"
+                            onClick={() => {
+                              const url = getTradeUrl(trade);
+                              if (url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                            title={`View trade on Polymarket${trade.transactionHash ? ` (${trade.transactionHash.substring(0, 8)}...)` : ''}`}
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {formatTime(trade.time)}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {trade.market}
+                                </div>
+                                {trade.category && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">{trade.category}</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900 dark:text-white">
+                                  {trade.traderAddress || trade.trader}
+                                </div>
+                                {trade.isInsiderLike && (
+                                  <div className="text-xs text-yellow-600 dark:text-yellow-400 font-semibold">Insider</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                    trade.side === 'buy'
+                                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  }`}
+                                >
+                                  {trade.side.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white text-right">
+                                {formatCurrency(trade.investment)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">
+                                {trade.price.toFixed(2)}%
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 text-right">
+                                {trade.shares.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </ElevatedCard>
+                </div>
+              </>
             )}
           </>
         )}

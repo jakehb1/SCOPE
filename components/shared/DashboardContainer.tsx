@@ -18,7 +18,7 @@ export default function DashboardContainer({
   className = '',
 }: DashboardContainerProps) {
   return (
-    <div className={`section-container py-8 ${className}`}>
+    <div className={`section-container py-4 md:py-8 ${className}`}>
       {(title || subtitle || actions) && (
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-6">

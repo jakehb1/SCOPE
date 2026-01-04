@@ -11,7 +11,7 @@ export default function ElevatedInput({ icon, label, className = '', ...props }:
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-primary-black mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           {label}
         </label>
       )}
@@ -27,12 +27,13 @@ export default function ElevatedInput({ icon, label, className = '', ...props }:
             w-full
             ${icon ? 'pl-12' : 'pl-4'}
             pr-4 py-3
-            bg-white
-            border border-gray-200
+            min-h-[44px]
+            bg-white dark:bg-[#4A4D58]
+            border border-gray-200 dark:border-[#565862]
             rounded-xl
-            focus:outline-none focus:ring-2 focus:ring-primary-black focus:border-transparent
-            text-primary-black
-            placeholder:text-primary-grey
+            focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent
+            text-gray-900 dark:text-white
+            placeholder:text-gray-500 dark:placeholder:text-gray-400
             transition-all duration-200
             shadow-sm
             ${className}

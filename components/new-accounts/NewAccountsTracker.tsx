@@ -103,24 +103,31 @@ export default function NewAccountsTracker() {
     <DashboardContainer>
       <div className="space-y-6">
         {/* Controls */}
-        <ElevatedCard className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex-1">
-              <label htmlFor="minTradeSize" className="block text-sm font-medium text-primary-black mb-2">
-                Minimum Trade Size ($)
-              </label>
-              <ElevatedInput
-                id="minTradeSize"
-                type="number"
-                value={minTradeSize}
-                onChange={(e) => setMinTradeSize(e.target.value)}
-                placeholder="10000"
-                className="w-full md:w-48"
-              />
+        <ElevatedCard className="p-4 md:p-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex-1 w-full sm:w-auto">
+                <label htmlFor="minTradeSize" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Minimum Trade Size ($)
+                </label>
+                <ElevatedInput
+                  id="minTradeSize"
+                  type="number"
+                  value={minTradeSize}
+                  onChange={(e) => setMinTradeSize(e.target.value)}
+                  placeholder="10000"
+                  className="w-full sm:w-48"
+                />
+              </div>
+
+              <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400 text-right">
+                <div>Last updated: {lastUpdate.toLocaleTimeString()}</div>
+                <div className="text-xs">Auto-refreshes every 30s</div>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-primary-black mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Account Age
               </label>
               <div className="flex gap-2 flex-wrap">
@@ -135,7 +142,7 @@ export default function NewAccountsTracker() {
               </div>
             </div>
 
-            <div className="text-sm text-primary-grey">
+            <div className="sm:hidden text-sm text-gray-600 dark:text-gray-400 text-center pt-2 border-t border-gray-200 dark:border-[#565862]">
               <div>Last updated: {lastUpdate.toLocaleTimeString()}</div>
               <div className="text-xs">Auto-refreshes every 30s</div>
             </div>
@@ -143,26 +150,26 @@ export default function NewAccountsTracker() {
         </ElevatedCard>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">New Accounts</div>
-            <div className="text-2xl font-bold text-primary-black">{accounts.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">New Accounts</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{accounts.length}</div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Total Volume</div>
-            <div className="text-2xl font-bold text-primary-black">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Volume</div>
+            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {formatCurrency(accounts.reduce((sum, a) => sum + a.totalVolume, 0))}
             </div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Total Trades</div>
-            <div className="text-2xl font-bold text-primary-black">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Trades</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {accounts.reduce((sum, a) => sum + a.totalTrades, 0)}
             </div>
           </ElevatedCard>
           <ElevatedCard className="p-4">
-            <div className="text-sm text-primary-grey mb-1">Largest Trade</div>
-            <div className="text-2xl font-bold text-primary-black">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Largest Trade</div>
+            <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {accounts.length > 0 
                 ? formatCurrency(Math.max(...accounts.map(a => a.largestTrade.investment)))
                 : '$0'}
@@ -180,11 +187,11 @@ export default function NewAccountsTracker() {
 
         {/* Error State */}
         {error && !loading && (
-          <ElevatedCard className="p-6 bg-red-50 border-red-200">
-            <p className="text-red-800">{error}</p>
+          <ElevatedCard className="p-4 md:p-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+            <p className="text-red-800 dark:text-red-200">{error}</p>
             <button
               onClick={fetchAccounts}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="mt-4 px-5 py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 min-h-[44px] font-medium"
             >
               Retry
             </button>
@@ -206,32 +213,32 @@ export default function NewAccountsTracker() {
             ) : (
               <div className="space-y-4">
                 {accounts.map((account) => (
-                  <ElevatedCard key={account.traderAddress} className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-bold text-primary-black">
+                  <ElevatedCard key={account.traderAddress} className="p-4 md:p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                             {account.trader}
                           </h3>
                           <button
                             onClick={() => window.open(account.profileUrl, '_blank', 'noopener,noreferrer')}
-                            className="text-sm text-primary-grey hover:text-primary-black underline"
+                            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline min-h-[44px] sm:min-h-0 text-left sm:text-center"
                           >
                             View Profile →
                           </button>
                         </div>
-                        <p className="text-sm text-primary-grey mb-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 break-all sm:break-normal">
                           {account.traderAddress.substring(0, 6)}...{account.traderAddress.substring(account.traderAddress.length - 4)}
                         </p>
-                        <p className="text-sm text-primary-grey">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Account age: {account.accountAgeDays} days • First trade: {formatTime(account.firstTradeTime)}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary-black">
+                      <div className="text-left sm:text-right w-full sm:w-auto">
+                        <div className="text-2xl font-bold text-gray-900 dark:text-white">
                           {formatCurrency(account.totalVolume)}
                         </div>
-                        <div className="text-sm text-primary-grey">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           {account.totalTrades} trades
                         </div>
                       </div>
