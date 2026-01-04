@@ -66,7 +66,7 @@ export default function LargeTradesTracker() {
     } catch (err: any) {
       console.error('Error loading trades:', err);
       // Don't set error state - let the empty state show instead
-      // The API should return mock data even on errors
+      // The API should return real trades or empty array
       setTrades([]);
       setError('Unable to fetch trades. Please check your connection and try again.');
     } finally {

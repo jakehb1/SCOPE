@@ -39,68 +39,85 @@ export async function fetchLargeTrades(
       console.debug('CLOB client error:', clobError);
     }
 
-    // Try CLOB API /data/trades endpoint (recommended for real trades)
-    try {
-      const client = new ClobClient(CLOB_HOST, CHAIN_ID);
-      // CLOB API endpoint for trades
-      const clobTradesUrl = `${CLOB_HOST}/data/trades?limit=${limit}`;
-      console.log(`🔍 Trying CLOB trades endpoint: ${clobTradesUrl}`);
-      
-      const clobResponse = await fetch(clobTradesUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        next: { revalidate: 10 },
-      });
+    // Try CLOB API endpoints for trades
+    // Note: Polymarket's trades API may require authentication or use different endpoints
+    const clobEndpoints = [
+      `${CLOB_HOST}/data/trades`,
+      `${CLOB_HOST}/trades`,
+      `${CLOB_HOST}/fills`,
+    ];
 
-      if (clobResponse.ok) {
-        const clobData = await clobResponse.json();
-        console.log(`📦 CLOB response structure:`, Object.keys(clobData));
+    for (const endpoint of clobEndpoints) {
+      try {
+        const url = `${endpoint}?limit=${limit}`;
+        console.log(`🔍 Trying CLOB endpoint: ${url}`);
         
-        const rawTrades = Array.isArray(clobData) ? clobData : clobData.trades || clobData.data || [];
-        console.log(`📊 Found ${rawTrades.length} trades from CLOB API`);
-        
-        if (rawTrades.length > 0) {
-          const trades: Trade[] = rawTrades.map((item: any) => {
-            // CLOB API trade structure
-            const usdcSize = parseFloat(item.usdcSize || item.size || '0') || 0;
-            const price = parseFloat(item.price || item.avgPrice || '0') || 0;
-            const shares = parseFloat(item.shares || item.amount || '0') || 0;
-            
-            return {
-              id: item.id || item.transactionHash || item.txHash || `trade_${Date.now()}_${Math.random()}`,
-              trader: item.taker || item.maker || item.user || 'Unknown',
-              traderAddress: item.taker || item.maker || item.userAddress,
-              market: item.marketQuestion || item.question || item.market || 'Unknown Market',
-              marketId: item.conditionId || item.condition_id || item.marketId || '',
-              marketSlug: item.marketSlug || item.slug,
-              transactionHash: item.transactionHash || item.txHash || item.id,
-              shares: shares || (usdcSize && price ? usdcSize / price : 0),
-              investment: usdcSize,
-              price: price > 1 ? price : price * 100,
-              side: (item.side || item.direction || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
-              time: item.timestamp || item.time || item.createdAt || new Date().toISOString(),
-              category: item.category,
-              isInsiderLike: false,
-            };
-          }).filter((trade: Trade) => trade.id && trade.investment >= minAmount);
+        const clobResponse = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          next: { revalidate: 10 },
+        });
 
-          if (trades.length > 0) {
-            console.log(`✅ Processed ${trades.length} real trades from CLOB API`);
-            return {
-              trades: trades.slice(0, limit),
-              total: trades.length,
-            };
+        console.log(`📡 CLOB response status: ${clobResponse.status} for ${endpoint}`);
+
+        if (clobResponse.ok) {
+          const clobData = await clobResponse.json();
+          console.log(`📦 CLOB response keys:`, Object.keys(clobData));
+          console.log(`📦 CLOB response sample:`, JSON.stringify(clobData).substring(0, 1000));
+          
+          const rawTrades = Array.isArray(clobData) ? clobData : clobData.trades || clobData.data || clobData.results || clobData.fills || [];
+          console.log(`📊 Found ${rawTrades.length} raw trades from ${endpoint}`);
+          
+          if (rawTrades.length > 0) {
+            const trades: Trade[] = rawTrades.map((item: any) => {
+              // Try various field names for trade data
+              const usdcSize = parseFloat(item.usdcSize || item.size || item.amount || item.value || item.usdValue || '0') || 0;
+              const price = parseFloat(item.price || item.avgPrice || item.fillPrice || item.executionPrice || '0') || 0;
+              const shares = parseFloat(item.shares || item.amount || item.quantity || '0') || 0;
+              
+              return {
+                id: item.id || item.transactionHash || item.txHash || item.fillId || item.orderId || `trade_${Date.now()}_${Math.random()}`,
+                trader: item.taker || item.maker || item.user || item.trader || item.userAddress || 'Unknown',
+                traderAddress: item.taker || item.maker || item.userAddress || item.traderAddress || item.user,
+                market: item.marketQuestion || item.question || item.market || item.marketTitle || 'Unknown Market',
+                marketId: item.conditionId || item.condition_id || item.marketId || item.conditionId || '',
+                marketSlug: item.marketSlug || item.slug || item.marketSlug,
+                transactionHash: item.transactionHash || item.txHash || item.id || item.transactionId,
+                shares: shares || (usdcSize && price ? usdcSize / price : 0),
+                investment: usdcSize,
+                price: price > 1 ? price : price * 100,
+                side: (item.side || item.direction || item.type || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
+                time: item.timestamp || item.time || item.createdAt || item.timeCreated || new Date().toISOString(),
+                category: item.category || item.marketCategory,
+                isInsiderLike: false,
+              };
+            }).filter((trade: Trade) => {
+              const passes = trade.id && trade.investment >= minAmount;
+              if (!passes && trade.investment > 0) {
+                console.debug(`Filtered: ${trade.id} - $${trade.investment} < $${minAmount}`);
+              }
+              return passes;
+            });
+
+            if (trades.length > 0) {
+              console.log(`✅ Processed ${trades.length} real trades from ${endpoint}`);
+              return {
+                trades: trades.slice(0, limit),
+                total: trades.length,
+              };
+            }
           }
+        } else {
+          const errorText = await clobResponse.text();
+          console.log(`❌ ${endpoint} returned ${clobResponse.status}: ${errorText.substring(0, 200)}`);
         }
-      } else {
-        const errorText = await clobResponse.text();
-        console.log(`❌ CLOB trades endpoint returned ${clobResponse.status}: ${errorText.substring(0, 200)}`);
+      } catch (clobError) {
+        console.debug(`Error trying ${endpoint}:`, clobError);
+        continue;
       }
-    } catch (clobError) {
-      console.debug('CLOB trades endpoint error:', clobError);
     }
 
     // Fallback: Try Polymarket Data API endpoints
@@ -209,50 +226,5 @@ export async function fetchLargeTrades(
   }
 }
 
-/**
- * Generate mock trades for development/testing
- */
-function generateMockTrades(minAmount: number, limit: number): Trade[] {
-  const markets = [
-    'Will Bitcoin reach $100,000 by end of 2024?',
-    'Will Trump win the 2024 election?',
-    'Will the Lakers win the NBA championship?',
-    'Will AI achieve AGI by 2025?',
-    'Will Ethereum reach $5,000?',
-  ];
-
-  const traders = [
-    '0x1234...5678',
-    '0xabcd...efgh',
-    '0x9876...5432',
-    'whale_trader',
-    'crypto_insider',
-  ];
-
-  const trades: Trade[] = [];
-  const now = Date.now();
-
-  for (let i = 0; i < limit; i++) {
-    const investment = minAmount + Math.random() * 50000;
-    const price = 20 + Math.random() * 60;
-    const shares = investment / price;
-
-    trades.push({
-      id: `trade_${i}_${now}`,
-      trader: traders[Math.floor(Math.random() * traders.length)],
-      traderAddress: traders[Math.floor(Math.random() * traders.length)],
-      market: markets[Math.floor(Math.random() * markets.length)],
-      marketId: `market_${i}`,
-      shares: shares,
-      investment: investment,
-      price: price,
-      side: Math.random() > 0.3 ? 'buy' : 'sell',
-      time: new Date(now - i * 60000).toISOString(), // Stagger times
-      category: ['crypto', 'politics', 'sports', 'tech'][Math.floor(Math.random() * 4)],
-      isInsiderLike: Math.random() > 0.8,
-    });
-  }
-
-  return trades.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-}
+// Note: Mock data generation removed - we only want real trades
 
