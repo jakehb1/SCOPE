@@ -16,6 +16,7 @@ export default function Header() {
     { name: 'alerts', href: '/alerts' },
     { name: 'new accounts', href: '/new-accounts' },
     { name: 'whales', href: '/whales' },
+    { name: 'copy trading', href: '/copy-trading' },
     { name: 'arbitrage', href: '/arbitrage' },
     { name: 'roadmap', href: '/roadmap' },
   ];
