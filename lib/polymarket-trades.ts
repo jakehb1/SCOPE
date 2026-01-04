@@ -78,6 +78,27 @@ export async function fetchLargeTrades(
               const price = parseFloat(item.price || item.avgPrice || item.fillPrice || item.executionPrice || '0') || 0;
               const shares = parseFloat(item.shares || item.amount || item.quantity || '0') || 0;
               
+              // Parse timestamp correctly - handle both Unix timestamps (seconds or milliseconds) and ISO strings
+              let tradeTime = new Date().toISOString();
+              if (item.timestamp || item.time || item.createdAt || item.timeCreated) {
+                const timeValue = item.timestamp || item.time || item.createdAt || item.timeCreated;
+                if (typeof timeValue === 'string') {
+                  // ISO string
+                  const parsed = new Date(timeValue);
+                  if (!isNaN(parsed.getTime())) {
+                    tradeTime = parsed.toISOString();
+                  }
+                } else if (typeof timeValue === 'number') {
+                  // Unix timestamp - check if it's seconds or milliseconds
+                  const timestamp = timeValue > 1000000000000 ? timeValue : timeValue * 1000; // If less than year 2001, assume seconds
+                  const parsed = new Date(timestamp);
+                  if (!isNaN(parsed.getTime()) && parsed.getFullYear() > 2020) {
+                    // Only use if it's a reasonable date (after 2020)
+                    tradeTime = parsed.toISOString();
+                  }
+                }
+              }
+              
               return {
                 id: item.id || item.transactionHash || item.txHash || item.fillId || item.orderId || `trade_${Date.now()}_${Math.random()}`,
                 trader: item.taker || item.maker || item.user || item.trader || item.userAddress || 'Unknown',
@@ -90,15 +111,32 @@ export async function fetchLargeTrades(
                 investment: usdcSize,
                 price: price > 1 ? price : price * 100,
                 side: (item.side || item.direction || item.type || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
-                time: item.timestamp || item.time || item.createdAt || item.timeCreated || new Date().toISOString(),
+                time: tradeTime,
                 category: item.category || item.marketCategory,
                 isInsiderLike: false,
               };
             }).filter((trade: Trade) => {
-              const passes = trade.id && trade.investment >= minAmount;
-              if (!passes && trade.investment > 0) {
-                console.debug(`Filtered: ${trade.id} - $${trade.investment} < $${minAmount}`);
+              // Filter out invalid trades
+              const tradeDate = new Date(trade.time);
+              const isValidDate = !isNaN(tradeDate.getTime()) && tradeDate.getFullYear() >= 2020;
+              const hasValidAmount = trade.investment >= minAmount && trade.investment > 0;
+              const hasValidPrice = trade.price > 0 && trade.price <= 100;
+              const hasValidId = trade.id && !trade.id.includes('trade_') || trade.transactionHash;
+              const hasValidMarket = trade.market && trade.market !== 'Unknown Market';
+              
+              const passes = hasValidAmount && hasValidPrice && isValidDate && hasValidId && hasValidMarket;
+              
+              if (!passes) {
+                console.debug(`Filtered out invalid trade:`, {
+                  id: trade.id,
+                  date: trade.time,
+                  year: tradeDate.getFullYear(),
+                  investment: trade.investment,
+                  price: trade.price,
+                  market: trade.market,
+                });
               }
+              
               return passes;
             });
 
@@ -161,6 +199,24 @@ export async function fetchLargeTrades(
             const price = parseFloat(item.price || item.fill_price || item.execution_price || item.avg_price || '0') || 0;
             const shares = parseFloat(item.shares || item.amount || item.quantity || item.size || '0') || 0;
             
+            // Parse timestamp correctly
+            let tradeTime = new Date().toISOString();
+            if (item.time || item.timestamp || item.created_at || item.time_created) {
+              const timeValue = item.time || item.timestamp || item.created_at || item.time_created;
+              if (typeof timeValue === 'string') {
+                const parsed = new Date(timeValue);
+                if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2020) {
+                  tradeTime = parsed.toISOString();
+                }
+              } else if (typeof timeValue === 'number') {
+                const timestamp = timeValue > 1000000000000 ? timeValue : timeValue * 1000;
+                const parsed = new Date(timestamp);
+                if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2020) {
+                  tradeTime = parsed.toISOString();
+                }
+              }
+            }
+            
             return {
               id: item.id || item.tx_hash || item.transaction_hash || item.fill_id || `trade_${Date.now()}_${Math.random()}`,
               trader: item.trader || item.user || item.wallet || item.user_address || 'Unknown',
@@ -173,16 +229,31 @@ export async function fetchLargeTrades(
               investment: investment,
               price: price > 1 ? price : price * 100, // Convert to percentage if needed
               side: (item.side || item.direction || item.type || 'buy').toLowerCase().includes('sell') ? 'sell' : 'buy',
-              time: item.time || item.timestamp || item.created_at || item.time_created || new Date().toISOString(),
+              time: tradeTime,
               category: item.category || item.market_category || undefined,
               isInsiderLike: item.is_insider || item.insider || false,
             };
           }).filter((trade: Trade) => {
-            // Filter by minimum amount
-            const passes = trade.id && trade.investment >= minAmount;
-            if (!passes && trade.investment > 0) {
-              console.debug(`Filtered out trade: ${trade.id} - investment: $${trade.investment} < min: $${minAmount}`);
+            // Filter out invalid trades
+            const tradeDate = new Date(trade.time);
+            const isValidDate = !isNaN(tradeDate.getTime()) && tradeDate.getFullYear() >= 2020;
+            const hasValidAmount = trade.investment >= minAmount && trade.investment > 0;
+            const hasValidPrice = trade.price > 0 && trade.price <= 100;
+            const hasValidMarket = trade.market && trade.market !== 'Unknown Market';
+            
+            const passes = trade.id && hasValidAmount && hasValidPrice && isValidDate && hasValidMarket;
+            
+            if (!passes) {
+              console.debug(`Filtered out invalid trade:`, {
+                id: trade.id,
+                date: trade.time,
+                year: tradeDate.getFullYear(),
+                investment: trade.investment,
+                price: trade.price,
+                market: trade.market,
+              });
             }
+            
             return passes;
           });
 
