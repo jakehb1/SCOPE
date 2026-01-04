@@ -7,6 +7,7 @@ import DashboardContainer from '@/components/shared/DashboardContainer';
 import ElevatedCard from '@/components/shared/ElevatedCard';
 import ElevatedButton from '@/components/shared/ElevatedButton';
 import PillButton from '@/components/shared/PillButton';
+import TraderNetworkGraph from './TraderNetworkGraph';
 import { LeaderboardCategory, LeaderboardTimePeriod } from '@/types/leaderboard';
 
 const CATEGORY_FILTERS: { value: LeaderboardCategory; label: string }[] = [
@@ -33,13 +34,14 @@ export default function CopyTradingTracker() {
   const [timePeriod, setTimePeriod] = useState<LeaderboardTimePeriod>('MONTH');
   const [selectedTrader, setSelectedTrader] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<'list' | 'network'>('network');
 
   const fetchTraders = async () => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams({
-        limit: '20',
+        limit: '50', // Fetch more traders for network graph
         category,
         timePeriod,
       });
@@ -113,11 +115,32 @@ export default function CopyTradingTracker() {
     <DashboardContainer>
       <div className="space-y-6">
         {/* Filters */}
-        <ElevatedCard className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <ElevatedCard className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* View Mode Toggle */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                View Mode
+              </label>
+              <div className="flex gap-2">
+                <PillButton
+                  label="Network"
+                  onClick={() => setViewMode('network')}
+                  active={viewMode === 'network'}
+                />
+                <PillButton
+                  label="List"
+                  onClick={() => setViewMode('list')}
+                  active={viewMode === 'list'}
+                />
+              </div>
+            </div>
+          </div>
+          
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-primary-black mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Category
               </label>
               <div className="flex flex-wrap gap-2">
@@ -135,7 +158,7 @@ export default function CopyTradingTracker() {
 
             {/* Time Period Filter */}
             <div>
-              <label className="block text-sm font-medium text-primary-black mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Time Period
               </label>
               <div className="flex flex-wrap gap-2">
@@ -153,7 +176,7 @@ export default function CopyTradingTracker() {
           </div>
 
           {/* Last Updated */}
-          <div className="text-right text-sm text-primary-grey md:self-end">
+          <div className="text-right text-sm text-gray-600 dark:text-gray-400 md:self-end">
             <div>Last updated: {lastUpdate.toLocaleTimeString()}</div>
             <div className="text-xs">Auto-refreshes every 60s</div>
           </div>
@@ -181,13 +204,15 @@ export default function CopyTradingTracker() {
           </ElevatedCard>
         )}
 
-        {/* Traders List */}
+        {/* Network Graph or List View */}
         {!loading && !error && (
           <>
             {traders.length === 0 ? (
-              <div className="text-center py-12 text-primary-black opacity-90">
+              <div className="text-center py-12 text-gray-600 dark:text-gray-400">
                 No traders found matching your criteria.
               </div>
+            ) : viewMode === 'network' ? (
+              <TraderNetworkGraph traders={traders} />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {traders.map((trader) => (
