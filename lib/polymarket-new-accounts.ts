@@ -2,9 +2,11 @@
  * Polymarket New Accounts Tracker
  * 
  * Tracks recently created accounts that have made large trades
+ * Note: Activity API requires user parameter, so we aggregate trades from traders
  */
 
 import { Trade } from '@/types/trade';
+import { fetchLeaderboard } from './polymarket-leaderboard';
 
 export interface NewAccountEntry {
   traderAddress: string;
@@ -27,80 +29,49 @@ export interface NewAccountsResponse {
 const DATA_API_BASE = 'https://data-api.polymarket.com/v1';
 
 /**
- * Fetch recently created accounts with large trades
- * 
- * Strategy:
- * 1. Fetch recent large trades
- * 2. Group by trader address
- * 3. Try to get account creation dates from leaderboard or user data
- * 4. Filter for accounts created recently (e.g., last 30 days)
- * 5. Sort by total volume or largest trade
+ * Fetch trades for a specific user from Polymarket Activity API
  */
-export async function fetchNewAccountsWithBigTrades(
-  minTradeSize: number = 10000,
-  accountAgeDays: number = 30,
-  limit: number = 50
-): Promise<NewAccountsResponse> {
+async function fetchUserTrades(
+  userAddress: string,
+  minTradeSize: number,
+  lookbackDays: number
+): Promise<Trade[]> {
   try {
-    // Step 1: Fetch recent large trades using activity endpoint
-    // Look back enough days to catch new accounts (accountAgeDays + buffer)
-    const lookbackDays = Math.max(accountAgeDays + 7, 30); // At least 30 days
-    const startTime = Math.floor((Date.now() - lookbackDays * 24 * 60 * 60 * 1000) / 1000); // Unix timestamp in seconds
-    const endTime = Math.floor(Date.now() / 1000);
-    
-    console.log(`🔍 Fetching recent large trades for new accounts analysis (last ${lookbackDays} days)...`);
-    
-    // Use activity endpoint with type=TRADE
-    const activityUrl = `${DATA_API_BASE}/activity?type=TRADE&start=${startTime}&end=${endTime}`;
+    const now = Math.floor(Date.now() / 1000);
+    const startTime = now - (lookbackDays * 24 * 60 * 60);
+
+    const params = new URLSearchParams({
+      user: userAddress,
+      type: 'TRADE',
+      start: startTime.toString(),
+      end: now.toString(),
+    });
+
+    const activityUrl = `${DATA_API_BASE}/activity?${params.toString()}`;
     const response = await fetch(activityUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      next: { revalidate: 60 }, // Cache for 1 minute
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Failed to fetch activity: ${response.status} - ${errorText.substring(0, 200)}`);
-      return {
-        accounts: [],
-        total: 0,
-      };
+      return [];
     }
 
     const data = await response.json();
-    // Activity API returns array of activities
     const rawActivities = Array.isArray(data) ? data : data.activities || data.data || [];
-    // Filter for TRADE type
     const rawTrades = rawActivities.filter((item: any) => 
       item.type === 'TRADE' || item.activityType === 'TRADE' || item.kind === 'TRADE'
     );
-    console.log(`📊 Found ${rawTrades.length} recent trade activities`);
 
-    // Step 2: Filter large trades and group by trader
-    const accountMap = new Map<string, {
-      trades: Trade[];
-      addresses: Set<string>;
-    }>();
-
-    const cutoffDate = new Date(Date.now() - accountAgeDays * 24 * 60 * 60 * 1000);
-
-    for (const item of rawTrades) {
-      // Activity API uses usdcSize for trade size
+    const trades: Trade[] = rawTrades.map((item: any) => {
       const size = parseFloat(item.usdcSize || item.size || item.amount || item.value || '0') || 0;
-      if (size < minTradeSize) continue;
-
-      // Activity API uses proxyWallet for user address
-      const traderAddress = item.proxyWallet || item.proxy_wallet || item.userAddress || item.taker || item.maker || item.user;
-      if (!traderAddress) continue;
-
-      // Parse trade data
       const price = parseFloat(item.price || item.avgPrice || item.fillPrice || item.executionPrice || '0') || 0;
       const shares = parseFloat(item.shares || item.amount || item.quantity || '0') || 0;
       
-      // Parse timestamp - Activity API uses Unix timestamps in seconds
       let tradeTime = new Date().toISOString();
       if (item.timestamp || item.time || item.createdAt || item.created_at) {
         const timeValue = item.timestamp || item.time || item.createdAt || item.created_at;
@@ -118,16 +89,15 @@ export async function fetchNewAccountsWithBigTrades(
         }
       }
 
-      // Extract market info
       const marketInfo = item.market || item.marketQuestion || item.question || {};
       const marketTitle = typeof marketInfo === 'string' 
         ? marketInfo 
         : (marketInfo.title || marketInfo.question || marketInfo.name || 'Unknown Market');
 
-      const trade: Trade = {
+      return {
         id: item.id || item.transactionHash || item.txHash || `trade_${Date.now()}_${Math.random()}`,
-        trader: item.userName || item.user || traderAddress,
-        traderAddress: traderAddress,
+        trader: item.userName || item.user || userAddress,
+        traderAddress: userAddress,
         market: marketTitle,
         marketId: item.conditionId || item.condition_id || item.marketId || '',
         marketSlug: item.marketSlug || item.slug || (marketInfo.slug || undefined),
@@ -140,70 +110,133 @@ export async function fetchNewAccountsWithBigTrades(
         category: item.category || item.marketCategory || (marketInfo.category || undefined),
         isInsiderLike: false,
       };
+    }).filter((trade: Trade) => {
+      const tradeDate = new Date(trade.time);
+      const isValidDate = !isNaN(tradeDate.getTime()) && tradeDate.getFullYear() >= 2020;
+      const hasValidAmount = trade.investment >= minTradeSize && trade.investment > 0;
+      const hasValidPrice = trade.price > 0 && trade.price <= 100;
+      const hasValidMarket = trade.market && trade.market !== 'Unknown Market';
+      
+      return hasValidAmount && hasValidPrice && isValidDate && hasValidMarket;
+    });
 
-      if (!accountMap.has(traderAddress)) {
-        accountMap.set(traderAddress, {
-          trades: [],
-          addresses: new Set([traderAddress]),
-        });
-      }
+    return trades;
+  } catch (error) {
+    console.debug(`Error fetching trades for user ${userAddress.substring(0, 8)}...:`, error);
+    return [];
+  }
+}
 
-      accountMap.get(traderAddress)!.trades.push(trade);
+/**
+ * Fetch recently created accounts with large trades
+ * 
+ * Since the Activity API requires a user parameter, we:
+ * 1. Get traders from leaderboard
+ * 2. Fetch their trades to determine account age (first trade date)
+ * 3. Filter for accounts created within accountAgeDays
+ */
+export async function fetchNewAccountsWithBigTrades(
+  minTradeSize: number = 10000,
+  accountAgeDays: number = 30,
+  limit: number = 50
+): Promise<NewAccountsResponse> {
+  try {
+    // Get more traders from leaderboard to find new accounts
+    const lookbackDays = Math.max(accountAgeDays + 7, 30);
+    const leaderboardResponse = await fetchLeaderboard('OVERALL', 'MONTH', 'VOL', 50, 0);
+    const traders = leaderboardResponse.entries.slice(0, 40); // Limit to top 40
+    
+    if (traders.length === 0) {
+      console.warn('⚠️ No traders found from leaderboard');
+      return {
+        accounts: [],
+        total: 0,
+        error: 'No traders found',
+      };
     }
 
-    // Step 3: Identify new accounts based on first trade date
-    const accounts: NewAccountEntry[] = [];
-    const now = new Date();
+    console.log(`🔍 Fetching trades from ${traders.length} traders to find new accounts...`);
 
-    for (const [address, data] of accountMap.entries()) {
-      // Sort trades by time to find first trade
-      const sortedTrades = data.trades.sort((a, b) => 
-        new Date(a.time).getTime() - new Date(b.time).getTime()
+    const accountsMap = new Map<string, {
+      trades: Trade[];
+    }>();
+
+    const cutoffDate = new Date(Date.now() - accountAgeDays * 24 * 60 * 60 * 1000);
+
+    // Fetch trades for each trader (in batches to avoid rate limits)
+    const batchSize = 5;
+    for (let i = 0; i < traders.length; i += batchSize) {
+      const batch = traders.slice(i, i + batchSize);
+      const batchPromises = batch.map(trader => 
+        fetchUserTrades(trader.proxyWallet, minTradeSize, lookbackDays)
       );
       
-      const firstTrade = sortedTrades[0];
-      const firstTradeDate = new Date(firstTrade.time);
-      
-      // Calculate account age in days
-      const ageMs = now.getTime() - firstTradeDate.getTime();
-      const ageDays = ageMs / (1000 * 60 * 60 * 24);
-      
-      // If account age is within the specified window, consider it a new account
-      if (ageDays <= accountAgeDays) {
-        const totalVolume = data.trades.reduce((sum, t) => sum + t.investment, 0);
-        const largestTrade = data.trades.reduce((largest, t) => 
-          t.investment > largest.investment ? t : largest
-        );
+      const batchResults = await Promise.all(batchPromises);
+      batchResults.forEach((trades, index) => {
+        const trader = batch[index];
+        if (trades.length > 0) {
+          accountsMap.set(trader.proxyWallet, { trades });
+        }
+      });
+    }
 
-        accounts.push({
-          traderAddress: address,
-          trader: firstTrade.trader || address.substring(0, 6) + '...' + address.substring(address.length - 4),
-          firstTradeTime: firstTrade.time,
-          totalVolume: totalVolume,
-          totalTrades: data.trades.length,
-          largestTrade: largestTrade,
-          recentTrades: sortedTrades.slice(-5).reverse(), // Last 5 trades, most recent first
+    // Process accounts to find new ones
+    const newAccounts: NewAccountEntry[] = [];
+    const now = Date.now();
+
+    for (const [traderAddress, accountData] of accountsMap.entries()) {
+      if (accountData.trades.length === 0) continue;
+
+      // Find first trade
+      const sortedTrades = [...accountData.trades].sort((a, b) => 
+        new Date(a.time).getTime() - new Date(b.time).getTime()
+      );
+      const firstTrade = sortedTrades[0];
+      const firstTradeTime = new Date(firstTrade.time);
+
+      // Check if account is new (first trade within accountAgeDays)
+      if (firstTradeTime >= cutoffDate) {
+        const totalVolume = accountData.trades.reduce((sum, trade) => sum + trade.investment, 0);
+        const largestTrade = accountData.trades.reduce((largest, trade) => 
+          trade.investment > largest.investment ? trade : largest
+        );
+        
+        const recentTrades = [...accountData.trades]
+          .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+          .slice(0, 5);
+
+        const ageDays = (now - firstTradeTime.getTime()) / (1000 * 60 * 60 * 24);
+        const trader = traders.find(t => t.proxyWallet === traderAddress);
+
+        newAccounts.push({
+          traderAddress,
+          trader: trader?.userName || traderAddress.substring(0, 8) + '...',
+          firstTradeTime: firstTradeTime.toISOString(),
+          totalVolume,
+          totalTrades: accountData.trades.length,
+          largestTrade,
+          recentTrades,
           accountAgeDays: parseFloat(ageDays.toFixed(1)),
-          profileUrl: `https://polymarket.com/profile/${address}`,
+          profileUrl: `https://polymarket.com/profile/${traderAddress}`,
         });
       }
     }
 
-    // Step 4: Sort by total volume (descending)
-    accounts.sort((a, b) => b.totalVolume - a.totalVolume);
+    // Sort by total volume (highest first)
+    newAccounts.sort((a, b) => b.totalVolume - a.totalVolume);
 
-    console.log(`✅ Found ${accounts.length} new accounts with large trades`);
+    console.log(`✅ Found ${newAccounts.length} new accounts with large trades`);
 
     return {
-      accounts: accounts.slice(0, limit),
-      total: accounts.length,
+      accounts: newAccounts.slice(0, limit),
+      total: newAccounts.length,
     };
   } catch (error) {
     console.error('❌ Error fetching new accounts:', error);
     return {
       accounts: [],
       total: 0,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
-
