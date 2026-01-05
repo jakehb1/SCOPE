@@ -34,7 +34,7 @@ export default function CopyTradingTracker() {
   const [timePeriod, setTimePeriod] = useState<LeaderboardTimePeriod>('MONTH');
   const [selectedTrader, setSelectedTrader] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<'list' | 'network'>('network');
+  const [viewMode, setViewMode] = useState<'list' | 'network'>('list');
 
   const fetchTraders = async () => {
     setLoading(true);
