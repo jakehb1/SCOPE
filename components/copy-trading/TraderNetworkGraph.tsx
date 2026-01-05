@@ -203,11 +203,14 @@ export default function TraderNetworkGraph({ traders }: TraderNetworkGraphProps)
                 return graphNode.pnl >= 0 ? '#3B82F6' : '#EF4444';
               }}
               nodeVal={(node: any) => getNodeSize(node as GraphNode)}
-              linkColor={() => 'rgba(255, 255, 255, 0.3)'}
+              linkColor={() => 'rgba(255, 255, 255, 0.6)'}
               linkWidth={(link: any) => {
                 const graphLink = link as GraphLink;
-                return graphLink.similarity * 3;
+                return Math.max(1, graphLink.similarity * 2); // Minimum 1px, max based on similarity
               }}
+              linkDirectionalArrowLength={0}
+              linkDirectionalArrowRelPos={0}
+              linkCurvature={0}
               onNodeClick={(node: any) => handleNodeClick(node as GraphNode)}
               onNodeHover={(node: any) => handleNodeHover(node ? (node as GraphNode) : null)}
               nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D) => {
