@@ -114,15 +114,9 @@ export default function TraderNetworkGraph({ traders }: TraderNetworkGraphProps)
       <div className="lg:w-80 flex-shrink-0">
         <ElevatedCard className="p-4 md:p-6 h-full overflow-hidden flex flex-col">
           <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
               Top {Math.min(100, connections.length)} Connections
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-              Highest Jaccard similarity
-              <span className="cursor-help" title="Jaccard similarity measures how similar two traders' positions are (intersection over union)">
-                ?
-              </span>
-            </p>
           </div>
           
           <div className="flex-1 overflow-y-auto space-y-2">
